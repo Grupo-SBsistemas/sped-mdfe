@@ -19,10 +19,10 @@ namespace NFePHP\MDFe;
  */
 
 use DOMElement;
-use NFePHP\Common\Base\BaseMake;
+use NFePHP\Common\Keys;
 use NFePHP\Common\DateTime\DateTime;
 
-class Make extends BaseMake
+class Make
 {
     /**
      * versao
@@ -1958,10 +1958,13 @@ class Make extends BaseMake
         $cNF = $ide->getElementsByTagName('cMDF')->item(0)->nodeValue;
         $chave = str_replace('MDFe', '', $infMDFe->getAttribute("Id"));
         $tempData = explode("-", $dhEmi);
-        $chaveMontada = $this->montaChave(
+
+        $dt = new DateTime($dhEmi);
+
+        $chaveMontada = Keys::build(
             $cUF,
-            $tempData[0] - 2000,
-            $tempData[1],
+            $dt->format('y'),
+            $dt->format('m'),
             $cnpj,
             $mod,
             $serie,
