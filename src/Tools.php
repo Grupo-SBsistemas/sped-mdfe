@@ -57,27 +57,6 @@ class Tools extends CommonTools
 
 
     /**
-     * enviaMail
-     * Envia a MDFe por email aos destinatários
-     * Caso $aMails esteja vazio serão obtidos os email do destinatário  e
-     * os emails que estiverem registrados nos campos obsCont do xml
-     *
-     * @param  string  $pathXml
-     * @param  array   $aMails
-     * @param  string  $templateFile path completo ao arquivo template html do corpo do email
-     * @param  boolean $comPdf       se true o sistema irá renderizar o DANFE e anexa-lo a mensagem
-     * @return boolean
-     */
-    public function enviaMail($pathXml = '', $aMails = array(), $templateFile = '', $comPdf = false)
-    {
-        $mail = new Mail($this->aMailConf);
-        if ($templateFile != '') {
-            $mail->setTemplate($templateFile);
-        }
-        return $mail->envia($pathXml, $aMails, $comPdf);
-    }
-
-    /**
      * addProtocolo
      * Adiciona o protocolo de autorização de uso da MDFe
      * NOTA: exigência da SEFAZ, a MDFe somente é válida com o seu respectivo protocolo
