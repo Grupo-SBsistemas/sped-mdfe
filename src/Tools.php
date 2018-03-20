@@ -8,7 +8,6 @@ use NFePHP\Common\Exception;
 use NFePHP\MDFe\Common\Tools as CommonTools;
 use NFePHP\Common\Dom\ValidXsd;
 use NFePHP\Common\Strings\Strings;
-use NFePHP\MDFe\Auxiliar\Identify;
 use NFePHP\MDFe\Auxiliar\Response;
 use NFePHP\Common\DateTime\DateTime;
 use NFePHP\Common\LotNumber\LotNumber;
