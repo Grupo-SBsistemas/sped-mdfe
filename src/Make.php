@@ -18,12 +18,21 @@ namespace NFePHP\MDFe;
  * @author    Roberto L. Machado <linux.rlm at gmail dot com>
  */
 
-use DOMElement;
+use NFePHP\Common\DOMImproved as Dom;
 use NFePHP\Common\Keys;
 use NFePHP\Common\DateTime\DateTime;
 
 class Make
 {
+
+    /**
+     * dom
+     * documento dom contento xml do mdfe
+     *
+     * @var [DomImproved]
+     */
+    private $dom;
+
     /**
      * versao
      * numero da versão do xml da MDFe
@@ -135,6 +144,17 @@ class Make
     private $aInfTermDescarreg = []; //array de DOMNode
     private $aInfEmbComb = []; //array de DOMNode
     private $aCountDoc = []; //contador de documentos fiscais
+
+        /**
+     * Função construtora cria um objeto DOMDocument
+     * que será carregado com o documento fiscal
+     */
+    public function __construct()
+    {
+        $this->dom = new Dom('1.0', 'UTF-8');
+        $this->dom->preserveWhiteSpace = false;
+        $this->dom->formatOutput = false;
+    }
 
     /**
      *
