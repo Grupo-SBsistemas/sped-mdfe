@@ -55,21 +55,7 @@ class Tools extends CommonTools
      */
     protected $rootDir;
 
-    /**
-     * imprime
-     * Imprime o documento eletrônico (MDFe, CCe, Inut.)
-     *
-     * @param  string $pathXml
-     * @param  string $pathDestino
-     * @param  string $printer
-     * @return string
-     */
-    public function imprime($pathXml = '', $pathDestino = '', $printer = '')
-    {
-        //TODO : falta implementar esse método para isso é necessária a classe
-        //PrintMDFe
-        return "$pathXml $pathDestino $printer";
-    }
+
     /**
      * enviaMail
      * Envia a MDFe por email aos destinatários
