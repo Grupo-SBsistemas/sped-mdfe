@@ -5,20 +5,35 @@ namespace Tests\NFePHP\MDFe;
 /**
  * @author Roberto L. Machado <linux.rlm at gmail dot com>
  */
-use NFePHP\Common\Exception\InvalidArgumentException;
 use NFePHP\MDFe\Tools;
-use PHPUnit_Framework_TestCase;
+use NFePHP\Common\Certificate;
+use PHPUnit\Framework\TestCase;
+use NFePHP\Common\Exception\InvalidArgumentException;
 
-class ToolsTest extends PHPUnit_Framework_TestCase
+class ToolsTest extends TestCase
 {
-    public $mdfe;
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
+    protected $fixturesPath;
+
+
+    protected function setUp()
+    {
+        $this->fixturesPath = __DIR__ . "/fixtures/";
+    }
+
     public function testInstanciar()
     {
-        $configJson = dirname(__FILE__) . '/fixtures/config/fakeconfig.json';
-        $this->mdfe = new Tools($configJson);
+        $configJson = $this->fixturesPath . 'config/fakeconfig.json';
+        $certPath = $this->fixturesPath . 'certs/expired_certificate.pfx';
+
+        $cert = Certificate::readPfx(
+            file_get_contents($certPath),
+            'associacao'
+        );
+
+        $mdfe = new Tools(
+            file_get_contents($configJson), 
+            $cert
+        );
     }
 }

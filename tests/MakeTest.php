@@ -7,9 +7,9 @@ namespace Tests\NFePHP\MDFe;
  * @author Roberto L. Machado <linux.rlm at gmail dot com>
  */
 use NFePHP\MDFe\Make;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
-class MakeTest extends PHPUnit_Framework_TestCase
+class MakeTest extends TestCase
 {
     /**
      * @var Make

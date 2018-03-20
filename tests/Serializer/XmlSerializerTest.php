@@ -20,8 +20,9 @@ use NFePHP\MDFe\XsdType\Rodo\Rodo\InfANTTType;
 use NFePHP\MDFe\XsdType\Rodo\Rodo\VeicReboqueType;
 use NFePHP\MDFe\XsdType\Rodo\Rodo\VeicTracaoType;
 use NFePHP\MDFe\XsdType\Rodo\Rodo\VeicTracaoType\CondutorType;
+use PHPUnit\Framework\TestCase;
 
-class XmlSerializerTest extends \PHPUnit_Framework_TestCase
+class XmlSerializerTest extends TestCase
 {
     public function testASerializacaoDeveDefinirONomeDoElementoRaizParaMdfe()
     {
