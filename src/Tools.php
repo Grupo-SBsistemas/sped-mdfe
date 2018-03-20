@@ -2,16 +2,16 @@
 
 namespace NFePHP\MDFe;
 
-use NFePHP\Common\Base\BaseTools;
-use NFePHP\Common\DateTime\DateTime;
-use NFePHP\Common\Dom\Dom;
-use NFePHP\Common\Dom\ValidXsd;
-use NFePHP\Common\Exception;
 use NFePHP\Common\Files;
-use NFePHP\Common\LotNumber\LotNumber;
+use NFePHP\Common\Dom\Dom;
+use NFePHP\Common\Exception;
+use NFePHP\MDFe\Common\Tools as CommonTools;
+use NFePHP\Common\Dom\ValidXsd;
 use NFePHP\Common\Strings\Strings;
 use NFePHP\MDFe\Auxiliar\Identify;
 use NFePHP\MDFe\Auxiliar\Response;
+use NFePHP\Common\DateTime\DateTime;
+use NFePHP\Common\LotNumber\LotNumber;
 
 /**
  * Classe principal para a comunicação com a SEFAZ
@@ -23,7 +23,7 @@ use NFePHP\MDFe\Auxiliar\Response;
  * @link      http://github.com/nfephp-org/sped-mdfe for the canonical source repository
  * @author    Roberto L. Machado <linux.rlm at gmail dot com>
  */
-class Tools extends BaseTools
+class Tools extends CommonTools
 {
     /**
      * errrors
@@ -54,12 +54,6 @@ class Tools extends BaseTools
      * @var string
      */
     protected $rootDir;
-
-    public function __construct($configJson = '')
-    {
-        parent::__construct($configJson);
-        $this->rootDir = dirname(__DIR__);
-    }
 
     /**
      * imprime
