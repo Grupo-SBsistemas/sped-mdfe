@@ -941,36 +941,4 @@ class Tools extends CommonTools
         return array('alias' => $aliasEvento, 'desc' => $descEvento);
     }
 
-    /**
-     * validarXml
-     * Valida qualquer xml do sistema MDFe com seu xsd
-     * NOTA: caso não exista um arquivo xsd apropriado retorna false
-     *
-     * @param  string $xml path ou conteudo do xml
-     * @return boolean
-     */
-    public function validarXml($xml = '')
-    {
-        $aResp = array();
-        $schem = Identify::identificar($xml, $aResp);
-        if ($schem == '') {
-            $this->errors[] = "Não foi possível identificar o documento";
-        }
-        $xsdFile = $aResp['Id'].'_v'.$aResp['versao'].'.xsd';
-        $xsdPath = $this->rootDir.DIRECTORY_SEPARATOR .
-            'schemes' .
-            DIRECTORY_SEPARATOR .
-            $this->aConfig['schemesMDFe'] .
-            DIRECTORY_SEPARATOR .
-            $xsdFile;
-        if (! is_file($xsdPath)) {
-            $this->errors[] = "O arquivo XSD $xsdFile não foi localizado.";
-            return false;
-        }
-        if (! ValidXsd::validar($aResp['xml'], $xsdPath)) {
-            $this->errors[] = ValidXsd::$errors;
-            return false;
-        }
-        return true;
-    }
 }
