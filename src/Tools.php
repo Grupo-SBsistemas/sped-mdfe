@@ -5,12 +5,14 @@ namespace NFePHP\MDFe;
 use NFePHP\Common\Files;
 use NFePHP\Common\Dom\Dom;
 use NFePHP\Common\Exception;
-use NFePHP\MDFe\Common\Tools as CommonTools;
+use NFePHP\Common\Certificate;
 use NFePHP\Common\Dom\ValidXsd;
 use NFePHP\Common\Strings\Strings;
 use NFePHP\MDFe\Auxiliar\Response;
 use NFePHP\Common\DateTime\DateTime;
+use NFePHP\Common\Soap\SoapInterface;
 use NFePHP\Common\LotNumber\LotNumber;
+use NFePHP\MDFe\Common\Tools as CommonTools;
 
 /**
  * Classe principal para a comunicação com a SEFAZ
@@ -24,6 +26,9 @@ use NFePHP\Common\LotNumber\LotNumber;
  */
 class Tools extends CommonTools
 {
+
+
+
     /**
      * errrors
      *
@@ -53,7 +58,6 @@ class Tools extends CommonTools
      * @var string
      */
     protected $rootDir;
-
 
     /**
      * addProtocolo
@@ -533,54 +537,43 @@ class Tools extends CommonTools
      * @throws   Exception\RuntimeException
      * @internal function zLoadServico (Common\Base\BaseTools)
      */
-    public function sefazStatus($siglaUF = '', $tpAmb = '2', &$aRetorno = array())
+    public function sefazStatus($siglaUF = '', $tpAmb = null, &$aRetorno = array())
     {
-        if ($tpAmb == '') {
-            $tpAmb = $this->aConfig['tpAmb'];
+        if (empty($tpAmb)) {
+            $tpAmb = $this->tpAmb;
         }
-        if ($siglaUF == '') {
-            $siglaUF = $this->aConfig['siglaUF'];
+        $ignoreContingency = true;
+
+        if (empty($siglaUF)) {
+            $siglaUF = $this->config->siglaUF;
+            $ignoreContingency = false;
         }
-        //carrega serviço
+        
         $servico = 'MDFeStatusServico';
-        $this->zLoadServico(
-            'mdfe',
+        $this->checkContingencyForWebServices($servico);
+        $this->servico(
             $servico,
             $siglaUF,
-            $tpAmb
+            $tpAmb,
+            $ignoreContingency
         );
+        
         if ($this->urlService == '') {
             $msg = "O status não está disponível na SEFAZ $siglaUF!!!";
             throw new Exception\RuntimeException($msg);
         }
-        $cons = "<consStatServMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
+        $request = "<consStatServMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
             . "<tpAmb>$tpAmb</tpAmb>"
             . "<xServ>STATUS</xServ></consStatServMDFe>";
-        //valida mensagem com xsd
-        //if (! $this->zValidMessage($cons, 'mdfe', 'consStatServMDFe', $version)) {
-        //    $msg = 'Falha na validação. '.$this->error;
-        //    throw new Exception\RuntimeException($msg);
-        //}
+
+        $this->isValid($this->urlVersion, $request, 'consStatServMDFe');
+        $this->lastRequest = $request;
+
         //montagem dos dados da mensagem SOAP
-        $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$cons</mdfeDadosMsg>";
-        //consome o webservice e verifica o retorno do SOAP
-        $retorno = $this->oSoap->send(
-            $this->urlService,
-            $this->urlNamespace,
-            $this->urlHeader,
-            $body,
-            $this->urlMethod
-        );
-        $lastMsg = $this->oSoap->lastMsg;
-        $this->soapDebug = $this->oSoap->soapDebug;
-        $datahora = date('Ymd_His');
-        //$filename = $siglaUF."_"."$datahora-consStatServ.xml";
-        //$this->zGravaFile('mdfe', $tpAmb, $filename, $lastMsg);
-        //$filename = $siglaUF."_"."$datahora-retConsStatServ.xml";
-        //$this->zGravaFile('mdfe', $tpAmb, $filename, $retorno);
-        //tratar dados de retorno
-        $aRetorno = Response::readReturnSefaz($servico, $retorno);
-        return (string) $retorno;
+        $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$request</mdfeDadosMsg>";
+        $parameters = ['mdfeDadosMsg' => $request];
+        $this->lastResponse = $this->sendRequest($body, $parameters);
+        return $this->lastResponse;
     }
 
     /**
