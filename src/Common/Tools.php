@@ -100,10 +100,10 @@ class Tools
      */
     protected $canonical = [true,false,null,null];
     /**
-     * Model of NFe 55 or 65
+     * Model of MDFe - 58
      * @var int
      */
-    protected $modelo = 57;
+    protected $modelo = 58;
     /**
      * Version of layout
      * @var string
