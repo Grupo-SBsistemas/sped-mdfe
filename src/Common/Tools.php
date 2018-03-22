@@ -195,6 +195,11 @@ class Tools
         $this->setEnvironment($this->config->tpAmb);
         $this->contingency = new Contingency();
         $this->soap = new SoapCurl($certificate);
+        $this->soap->loadCA( 
+            realpath(
+                __DIR__ . '/../../console/cacerts/casefaz.crt'
+            )
+         );
     }
     
     /**
