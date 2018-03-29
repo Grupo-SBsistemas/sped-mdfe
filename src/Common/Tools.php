@@ -195,7 +195,6 @@ class Tools
         $this->setEnvironment($this->config->tpAmb);
         $this->contingency = new Contingency();
         $this->soap = new SoapCurl($certificate);
-        $this->soap->disableSecurity(true);
     }
     
     /**
@@ -309,7 +308,7 @@ class Tools
         $uf = $this->config->siglaUF;
         if ($uf != UFList::getUFByCode(substr($chave, 0, 2))) {
             throw new \InvalidArgumentException(
-                "A chave da NFe indicada [$chave] não pertence a [$uf]."
+                "A chave do MDFe indicada [$chave] não pertence a [$uf]."
             );
         }
         return $uf;
@@ -514,15 +513,12 @@ class Tools
             . "/"
             . $this->urlMethod
             . "\"";
-        //montagem do SOAP Header
-        //para versões posteriores a 3.10 não incluir o SoapHeader !!!!
-        if ($this->versao < '4.00') {
-            $this->objHeader = new SoapHeader(
-                $this->urlNamespace,
-                'nfeCabecMsg',
-                ['cUF' => $this->urlcUF, 'versaoDados' => $this->urlVersion]
-            );
-        }
+
+        $this->objHeader = new SoapHeader(
+            $this->urlNamespace,
+            'mdfeCabecMsg',
+            ['cUF' => $this->urlcUF, 'versaoDados' => $this->urlVersion]
+        );
     }
     
     /**
