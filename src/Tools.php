@@ -353,12 +353,13 @@ class Tools extends CommonTools
         $tagAdic = "<evEncMDFe><descEvento>Encerramento</descEvento>"
                 . "<nProt>$nProt</nProt><dtEnc>$dtEnc</dtEnc><cUF>$cUF</cUF>"
                 . "<cMun>$cMun</cMun></evEncMDFe>";
-
+        
         return $this->sefazEvento(
             $siglaUF,
             $chave,
             $tpEvento,
-            $nSeqEvento
+            $nSeqEvento,
+            $tagAdic
         );
     }
 
