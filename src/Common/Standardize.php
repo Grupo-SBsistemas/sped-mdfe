@@ -37,27 +37,24 @@ class Standardize
      */
     public $rootTagList = [
         'envEvento',
-        'consSitNFe',
-        'consReciNFe',
-        'downloadNFe',
-        'enviNFe',
-        'inutNFe',
-        'admCscNFCe',
+        'consReciMDFe',
+        'downloadMDFe',
+        'enviMDFe',
+        'inutMDFe',
         'consStatServ',
-        'retDistDFeInt',
         'retEnvEvento',
-        'retConsSitNFe',
-        'retConsReciNFe',
-        'retDownloadNFe',
-        'retEnviNFe',
-        'retInutNFe',
+        'retConsSitMDFe',
+        'retConsReciMDFe',
+        'retDownloadMDFe',
+        'retEnviMDFe',
+        'retInutMDFe',
         'retAdmCscNFCe',
         'retConsStatServ',
-        'procInutNFe',
-        'procEventoNFe',
-        'procNFe',
-        'nfeProc',
-        'NFe'
+        'procInutMDFe',
+        'procEventoMDFe',
+        'procMDFe',
+        'mdfeProc',
+        'MDFe'
     ];
     
     /**
