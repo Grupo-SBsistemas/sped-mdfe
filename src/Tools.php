@@ -333,7 +333,6 @@ class Tools extends CommonTools
      */
     public function sefazEncerra(
         $chave = '',
-        $nSeqEvento = '1',
         $nProt = '',
         $cUF = '',
         $cMun = ''
@@ -348,9 +347,8 @@ class Tools extends CommonTools
 
         //estabelece o codigo do tipo de evento ENCERRAMENTO
         $tpEvento = '110112';
-        if (empty($nSeqEvento)) {
-            $nSeqEvento = '1';
-        }
+        $nSeqEvento = '1';
+        
         $dtEnc = date('Y-m-d');
         $tagAdic = "<evEncMDFe><descEvento>Encerramento</descEvento>"
                 . "<nProt>$nProt</nProt><dtEnc>$dtEnc</dtEnc><cUF>$cUF</cUF>"
