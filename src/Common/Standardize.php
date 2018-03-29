@@ -43,6 +43,7 @@ class Standardize
         'inutMDFe',
         'consStatServ',
         'retEnvEvento',
+        'retEventoMDFe',
         'retConsSitMDFe',
         'retConsReciMDFe',
         'retDownloadMDFe',

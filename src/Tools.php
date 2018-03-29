@@ -209,7 +209,7 @@ class Tools extends CommonTools
     {
 
         $siglaUF = $this->validKeyByUF($chave);
-        if (emtpy($tpAmb)) {
+        if (empty($tpAmb)) {
             $tpAmb = $this->tpAmb;
         }
         //carrega serviço
@@ -306,7 +306,9 @@ class Tools extends CommonTools
         );
         $tpEvento = 110111;
         $nSeqEvento = 1;
-        $tagAdic = "<nProt>$nProt</nProt><xJust>$xJust</xJust>";
+        $tagAdic = "<evCancMDFe><descEvento>Cancelamento</descEvento>"
+                    . "<nProt>$nProt</nProt><xJust>$xJust</xJust>"
+                 . "</evCancMDFe>";
 
         return $this->sefazEvento(
             $uf,
@@ -444,7 +446,7 @@ class Tools extends CommonTools
         $nSeqEvento = 1,
         $tagAdic = ''
     ) {
-        $servico = 'RecepcaoEvento';
+        $servico = 'MDFeRecepcaoEvento';
         $this->checkContingencyForWebServices($servico);
         $this->servico(
             $servico,
@@ -461,8 +463,7 @@ class Tools extends CommonTools
         $sSeqEvento = str_pad($nSeqEvento, 2, "0", STR_PAD_LEFT);
         $eventId = "ID".$tpEvento.$chave.$sSeqEvento;
         $cOrgao = UFList::getCodeByUF($uf);
-        $request = "<eventoMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
-            . "<infEvento Id=\"$eventId\">"
+        $request = "<infEvento Id=\"$eventId\">"
             . "<cOrgao>$cOrgao</cOrgao>"
             . "<tpAmb>$this->tpAmb</tpAmb>"
             . "<CNPJ>$cnpj</CNPJ>"
@@ -470,13 +471,18 @@ class Tools extends CommonTools
             . "<dhEvento>$dhEvento</dhEvento>"
             . "<tpEvento>$tpEvento</tpEvento>"
             . "<nSeqEvento>$nSeqEvento</nSeqEvento>"
-            . "<verEvento>$this->urlVersion</verEvento>"
-            . "<detEvento versao=\"$this->urlVersion\">"
-            . "<descEvento>$descEvento</descEvento>"
+            . "<detEvento versaoEvento=\"$this->urlVersion\">"
             . "$tagAdic"
             . "</detEvento>"
-            . "</infEvento>"
+            . "</infEvento>";
+        
+        
+        
+        $lote = $dt->format('YmdHis').rand(0, 9);
+        $request = "<eventoMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
+            . $request
             . "</eventoMDFe>";
+
         //assinatura dos dados
         $request = Signer::sign(
             $this->certificate,
@@ -487,16 +493,13 @@ class Tools extends CommonTools
             $this->canonical
         );
         $request = Strings::clearXmlString($request, true);
-        $lote = $dt->format('YmdHis').rand(0, 9);
-        $request = "<envEvento xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
-            . "<idLote>$lote</idLote>"
-            . $request
-            . "</envEvento>";
-        $this->isValid($this->urlVersion, $request, 'envEvento');
+        $this->isValid($this->urlVersion, $request, 'eventoMDFe');
+ 
         $this->lastRequest = $request;
         $parameters = ['mdfeDadosMsg' => $request];
         $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$request</mdfeDadosMsg>";
         $this->lastResponse = $this->sendRequest($body, $parameters);
+        
         return $this->lastResponse;
     }
 
