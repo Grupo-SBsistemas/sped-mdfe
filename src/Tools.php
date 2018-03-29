@@ -3,6 +3,8 @@
 namespace NFePHP\MDFe;
 
 use NFePHP\Common\Files;
+use NFePHP\Common\Signer;
+use NFePHP\Common\UFList;
 use NFePHP\Common\Dom\Dom;
 use NFePHP\Common\Exception;
 use NFePHP\Common\Certificate;
@@ -13,6 +15,8 @@ use NFePHP\Common\DateTime\DateTime;
 use NFePHP\Common\Soap\SoapInterface;
 use NFePHP\Common\LotNumber\LotNumber;
 use NFePHP\MDFe\Common\Tools as CommonTools;
+use NFePHP\Common\Exception\RuntimeException;
+use NFePHP\Common\Exception\InvalidArgumentException;
 
 /**
  * Classe principal para a comunicação com a SEFAZ
@@ -311,7 +315,7 @@ class Tools extends CommonTools
     {
         return $this->assinaDoc($xml, 'mdfe', 'infMDFe', $saveFile);
     }
-
+    
     /**
      * sefazEnviaLote
      *
@@ -324,71 +328,35 @@ class Tools extends CommonTools
      * @throws   Exception\RuntimeException
      * @internal function zLoadServico (Common\Base\BaseTools)
      */
-    public function sefazEnviaLote(
-        $xml,
-        $tpAmb = '2',
-        $idLote = '',
-        &$aRetorno = array()
-    ) {
+    public function sefazEnviaLote($xml, $idLote) 
+    {
         if (empty($xml)) {
-            $msg = "Pelo menos uma MDFe deve ser informada.";
-            throw new Exception\InvalidArgumentException($msg);
+            $msg = "Pelo menos um MDFe deve ser informado.";
+            throw new InvalidArgumentException($msg);
         }
         $sxml = preg_replace("/<\?xml.*\?>/", "", $xml);
-        $siglaUF = $this->aConfig['siglaUF'];
-        if ($tpAmb == '') {
-            $tpAmb = $this->aConfig['tpAmb'];
-        }
-        if ($idLote == '') {
-            $idLote = LotNumber::geraNumLote(15);
-        }
-        //carrega serviço
+        
         $servico = 'MDFeRecepcao';
-        $this->zLoadServico(
-            'mdfe',
+        $this->servico(
             $servico,
-            $siglaUF,
-            $tpAmb
+            $this->config->siglaUF,
+            $this->tpAmb
         );
-        if ($this->urlService == '') {
-            $msg = "O envio de lote não está disponível na SEFAZ $siglaUF!!!";
-            throw new Exception\RuntimeException($msg);
-        }
+        
         //montagem dos dados da mensagem SOAP
-        $cons = "<enviMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
+        $request = "<enviMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
                 . "<idLote>$idLote</idLote>$sxml</enviMDFe>";
-        //valida a mensagem com o xsd
-        //if (! $this->zValidMessage($cons, 'mdfe', 'enviMDFe', $version)) {
-        //    $msg = 'Falha na validação. '.$this->error;
-        //    throw new Exception\RuntimeException($msg);
-        //}
-        //montagem dos dados da mensagem SOAP
-        $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$cons</mdfeDadosMsg>";
-        $method = $this->urlMethod;
+        $this->isValid($this->urlVersion, $request, 'enviMDFe');
+        $this->lastRequest = $request;
 
-        if (! $this->validarXml($xml) || sizeof($this->errors)) {
-            $msg = "";
-            header('Content-type: text/html; charset=UTF-8');
-            echo "<h3>XML NÃO VALIDADO!</h3>";
-            echo "<pre>";
-            echo htmlspecialchars($tools->soapDebug);
-            echo print_r($tools->errors);
-            echo "</pre>";
-            die("msg=>".$msg."XML=>".$xml);
-            exit;
-        }
+        //montagem dos dados da mensagem SOAP
+        $parameters = ['mdfeDadosMsg' => $request];
+        $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$request</mdfeDadosMsg>";
+
         //envia a solicitação via SOAP
-        $retorno = $this->oSoap->send($this->urlService, $this->urlNamespace, $this->urlHeader, $body, $method);
-        $lastMsg = $this->oSoap->lastMsg;
-        $this->soapDebug = $this->oSoap->soapDebug;
-        //salva mensagens
-        //$filename = "$idLote-enviMDFe.xml";
-        //$this->zGravaFile('mdfe', $tpAmb, $filename, $lastMsg);
-        //$filename = "$idLote-retEnviMDFe.xml";
-        //$this->zGravaFile('mdfe', $tpAmb, $filename, $retorno);
-        //tratar dados de retorno
-        $aRetorno = Response::readReturnSefaz($servico, $retorno);
-        return (string) $retorno;
+        $this->lastResponse = $this->sendRequest($body, $parameters);
+        
+        return $this->lastResponse;
     }
 
     /**
@@ -402,57 +370,37 @@ class Tools extends CommonTools
      * @throws   Exception\RuntimeException
      * @internal function zLoadServico (Common\Base\BaseTools)
      */
-    public function sefazConsultaRecibo($recibo = '', $tpAmb = '2', &$aRetorno = array())
+    public function sefazConsultaRecibo($recibo = '', $tpAmb = '2')
     {
         if ($recibo == '') {
             $msg = "Deve ser informado um recibo.";
-            throw new Exception\InvalidArgumentException($msg);
+            throw new InvalidArgumentException($msg);
         }
+
         if ($tpAmb == '') {
-            $tpAmb = $this->aConfig['tpAmb'];
+            $tpAmb = $this->tpAmb;
         }
-        $siglaUF = $this->aConfig['siglaUF'];
+
         //carrega serviço
         $servico = 'MDFeRetRecepcao';
-        $this->zLoadServico(
-            'mdfe',
+        $this->servico(
             $servico,
-            $siglaUF,
+            $this->config->siglaUF,
             $tpAmb
         );
-        if ($this->urlService == '') {
-            $msg = "A consulta de MDFe não está disponível na SEFAZ $siglaUF!!!";
-            throw new Exception\RuntimeException($msg);
-        }
+
         $cons = "<consReciMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
             . "<tpAmb>$tpAmb</tpAmb>"
             . "<nRec>$recibo</nRec>"
             . "</consReciMDFe>";
-        //valida a mensagem com o xsd
-        //if (! $this->zValidMessage($cons, 'mdfe', 'consReciMDFe', $version)) {
-        //    $msg = 'Falha na validação. '.$this->error;
-        //    throw new Exception\RuntimeException($msg);
-        //}
+        $this->isValid($this->urlVersion, $cons, 'consReciMDFe');
+        $this->lastRequest = $cons;
         //montagem dos dados da mensagem SOAP
+        $parameters = ['mdfeDadosMsg' => $cons];
         $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$cons</mdfeDadosMsg>";
-        //envia a solicitação via SOAP
-        $retorno = $this->oSoap->send(
-            $this->urlService,
-            $this->urlNamespace,
-            $this->urlHeader,
-            $body,
-            $this->urlMethod
-        );
-        $lastMsg = $this->oSoap->lastMsg;
-        $this->soapDebug = $this->oSoap->soapDebug;
-        //salva mensagens
-        //$filename = "$recibo-consReciMDFe.xml";
-        //$this->zGravaFile('mdfe', $tpAmb, $filename, $lastMsg);
-        //$filename = "$recibo-retConsReciMDFe.xml";
-        //$this->zGravaFile('mdfe', $tpAmb, $filename, $retorno);
-        //tratar dados de retorno
-        $aRetorno = Response::readReturnSefaz($servico, $retorno);
-        return (string) $retorno;
+        $this->lastRsponse = $this->sendRequest($body, $parameters);
+
+        return $this->lastResponse;
     }
 
     /**
@@ -467,61 +415,34 @@ class Tools extends CommonTools
      * @throws   Exception\RuntimeException
      * @internal function zLoadServico (Common\Base\BaseTools)
      */
-    public function sefazConsultaChave($chave = '', $tpAmb = '2', &$aRetorno = array())
+    public function sefazConsultaChave($chave = '', $tpAmb = '2')
     {
-        $chMDFe = preg_replace('/[^0-9]/', '', $chave);
-        if (strlen($chMDFe) != 44) {
-            $msg = "Uma chave de 44 dígitos da MDFe deve ser passada.";
-            throw new Exception\InvalidArgumentException($msg);
+
+        $siglaUF = $this->validKeyByUF($chave);
+        if (emtpy($tpAmb)) {
+            $tpAmb = $this->tpAmb;
         }
-        if ($tpAmb == '') {
-            $tpAmb = $this->aConfig['tpAmb'];
-        }
-        $cUF = substr($chMDFe, 0, 2);
-        $siglaUF = self::zGetSigla($cUF);
         //carrega serviço
         $servico = 'MDFeConsulta';
-        $this->zLoadServico(
-            'mdfe',
+        $this->servico(
             $servico,
             $siglaUF,
             $tpAmb
         );
-        if ($this->urlService == '') {
-            $msg = "A consulta de MDFe não está disponível na SEFAZ $siglaUF!!!";
-            throw new Exception\RuntimeException($msg);
-        }
         $cons = "<consSitMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
                 . "<tpAmb>$tpAmb</tpAmb>"
                 . "<xServ>CONSULTAR</xServ>"
                 . "<chMDFe>$chMDFe</chMDFe>"
                 . "</consSitMDFe>";
-        //valida a mensagem com o xsd
-        //if (! $this->zValidMessage($cons, 'mdfe', 'consSitMDFe', $version)) {
-        //    $msg = 'Falha na validação. '.$this->error;
-        //    throw new Exception\RuntimeException($msg);
-        //}
-        //montagem dos dados da mensagem SOAP
-        $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$cons</mdfeDadosMsg>";
-        //envia a solicitação via SOAP
-        $retorno = $this->oSoap->send(
-            $this->urlService,
-            $this->urlNamespace,
-            $this->urlHeader,
-            $body,
-            $this->urlMethod
-        );
-        $lastMsg = $this->oSoap->lastMsg;
-        $this->soapDebug = $this->oSoap->soapDebug;
-        //salva mensagens
-        //$filename = "$chMDFe-consSitMDFe.xml";
-        //$this->zGravaFile('mdfe', $tpAmb, $filename, $lastMsg);
-        //$filename = "$chMDFe-retConsSitMDFe.xml";
-        //$this->zGravaFile('mdfe', $tpAmb, $filename, $retorno);
-        //tratar dados de retorno
-        $aRetorno = Response::readReturnSefaz($servico, $retorno);
+        $this->isValid($this->urlVersion, $cons, 'consSitMDFe');
+        $this->lastRequest = $cons;
 
-        return (string) $retorno;
+        //montagem dos dados da mensagem SOAP
+        $parameters = ['mdfeDadosMsg' => $cons];
+        $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$cons</mdfeDadosMsg>";
+        $this->lastResponse = $this->sendRequest($body, $parameters);
+        
+        return $this->lastResponse;
     }
 
     /**
@@ -537,7 +458,7 @@ class Tools extends CommonTools
      * @throws   Exception\RuntimeException
      * @internal function zLoadServico (Common\Base\BaseTools)
      */
-    public function sefazStatus($siglaUF = '', $tpAmb = null, &$aRetorno = array())
+    public function sefazStatus($siglaUF = '', $tpAmb = null)
     {
         if (empty($tpAmb)) {
             $tpAmb = $this->tpAmb;
@@ -587,46 +508,23 @@ class Tools extends CommonTools
      * @return string
      * @throws Exception\InvalidArgumentException
      */
-    public function sefazCancela(
-        $chave = '',
-        $tpAmb = '2',
-        $nSeqEvento = '1',
-        $nProt = '',
-        $xJust = '',
-        &$aRetorno = array()
-    ) {
-        if ($tpAmb == '') {
-            $tpAmb = $this->aConfig['tpAmb'];
-        }
-        $chMDFe = preg_replace('/[^0-9]/', '', $chave);
-        $nProt = preg_replace('/[^0-9]/', '', $nProt);
-        $xJust = Strings::cleanString($xJust);
-        if (strlen($chMDFe) != 44) {
-            $msg = "Uma chave de MDFe válida não foi passada como parâmetro $chMDFe.";
-            throw new Exception\InvalidArgumentException($msg);
-        }
-        if ($nProt == '') {
-            $msg = "Não foi passado o numero do protocolo!!";
-            throw new Exception\InvalidArgumentException($msg);
-        }
-        if (strlen($xJust) < 15 || strlen($xJust) > 255) {
-            $msg = "A justificativa deve ter pelo menos 15 digitos e no máximo 255!!";
-            throw new Exception\InvalidArgumentException($msg);
-        }
-        $siglaUF = self::zGetSigla(substr($chMDFe, 0, 2));
-        //estabelece o codigo do tipo de evento CANCELAMENTO
-        $tpEvento = '110111';
-        if ($nSeqEvento == '') {
-            $nSeqEvento = '1';
-        }
-        $tagAdic = "<evCancMDFe><descEvento>Cancelamento</descEvento>"
-                . "<nProt>$nProt</nProt><xJust>$xJust</xJust></evCancMDFe>";
+    public function sefazCancela($chave, $xJust, $nProt) {
+        
+        $uf = $this->validKeyByUF($chave);
+        $xJust = Strings::replaceSpecialsChars(
+            substr(trim($xJust), 0, 255)
+        );
+        $tpEvento = 110111;
+        $nSeqEvento = 1;
+        $tagAdic = "<nProt>$nProt</nProt><xJust>$xJust</xJust>";
 
-        $cOrgao = '';
-
-        $retorno = $this->zSefazEvento($siglaUF, $chMDFe, $cOrgao, $tpAmb, $tpEvento, $nSeqEvento, $tagAdic);
-        $aRetorno = $this->aLastRetEvent;
-        return $retorno;
+        return $this->sefazEvento(
+            $uf,
+            $chave,
+            $tpEvento,
+            $nSeqEvento,
+            $tagAdic
+        );
     }
 
     /**
@@ -643,30 +541,22 @@ class Tools extends CommonTools
      */
     public function sefazEncerra(
         $chave = '',
-        $tpAmb = '2',
         $nSeqEvento = '1',
         $nProt = '',
         $cUF = '',
-        $cMun = '',
-        &$aRetorno = array()
+        $cMun = ''
     ) {
-        if ($tpAmb == '') {
-            $tpAmb = $this->aConfig['tpAmb'];
-        }
-        $chMDFe = preg_replace('/[^0-9]/', '', $chave);
-        $nProt = preg_replace('/[^0-9]/', '', $nProt);
-        if (strlen($chMDFe) != 44) {
-            $msg = "Uma chave de MDFe válida não foi passada como parâmetro $chMDFe.";
-            throw new Exception\InvalidArgumentException($msg);
-        }
-        if ($nProt == '') {
+
+        $siglaUF = $this->validKeyByUF($chave);
+
+        if (empty($nProt)) {
             $msg = "Não foi passado o numero do protocolo!!";
-            throw new Exception\InvalidArgumentException($msg);
+            throw new InvalidArgumentException($msg);
         }
-        $siglaUF = self::zGetSigla(substr($chMDFe, 0, 2));
+
         //estabelece o codigo do tipo de evento ENCERRAMENTO
         $tpEvento = '110112';
-        if ($nSeqEvento == '') {
+        if (empty($nSeqEvento)) {
             $nSeqEvento = '1';
         }
         $dtEnc = date('Y-m-d');
@@ -674,11 +564,12 @@ class Tools extends CommonTools
                 . "<nProt>$nProt</nProt><dtEnc>$dtEnc</dtEnc><cUF>$cUF</cUF>"
                 . "<cMun>$cMun</cMun></evEncMDFe>";
 
-        $cOrgao = '';
-
-        $retorno = $this->zSefazEvento($siglaUF, $chMDFe, $cOrgao, $tpAmb, $tpEvento, $nSeqEvento, $tagAdic);
-        $aRetorno = $this->aLastRetEvent;
-        return $retorno;
+        return $this->sefazEvento(
+            $siglaUF,
+            $chave,
+            $tpEvento,
+            $nSeqEvento
+        );
     }
 
     /**
@@ -695,35 +586,23 @@ class Tools extends CommonTools
      */
     public function sefazIncluiCondutor(
         $chave = '',
-        $tpAmb = '2',
         $nSeqEvento = '1',
         $xNome = '',
-        $cpf = '',
-        &$aRetorno = array()
+        $cpf = ''
     ) {
-        if ($tpAmb == '') {
-            $tpAmb = $this->aConfig['tpAmb'];
-        }
-        $chMDFe = preg_replace('/[^0-9]/', '', $chave);
-        if (strlen($chMDFe) != 44) {
-            $msg = "Uma chave de MDFe válida não foi passada como parâmetro $chMDFe.";
-            throw new Exception\InvalidArgumentException($msg);
-        }
-        $siglaUF = self::zGetSigla(substr($chMDFe, 0, 2));
+        $siglaUF = $this->validKeyByUF($chave);
         //estabelece o codigo do tipo de evento Inclusão de condutor
         $tpEvento = '110114';
-        if ($nSeqEvento == '') {
-            $nSeqEvento = '1';
-        }
         //monta mensagem
         $tagAdic = "<evIncCondutorMDFe><descEvento>Inclusao Condutor</descEvento>"
                 . "<condutor><xNome>$xNome</xNome><CPF>$cpf</CPF></condutor></evIncCondutorMDFe>";
 
-        $cOrgao = '';
-
-        $retorno = $this->zSefazEvento($siglaUF, $chMDFe, $cOrgao, $tpAmb, $tpEvento, $nSeqEvento, $tagAdic);
-        $aRetorno = $this->aLastRetEvent;
-        return $retorno;
+        return $this->sefazEvento(
+            $siglaUF, 
+            $chave, 
+            $tpEvento, 
+            $nSeqEvento
+        );
     }
 
     /**
@@ -735,181 +614,129 @@ class Tools extends CommonTools
      * @return string
      * @throws Exception\RuntimeException
      */
-    public function sefazConsultaNaoEncerrados($tpAmb = '2', $cnpj = '', &$aRetorno = array())
+    public function sefazConsultaNaoEncerrados($cnpj = '')
     {
-        if ($tpAmb == '') {
-            $tpAmb = $this->aConfig['tpAmb'];
+        if (empty($cnpj)) {
+            $cnpj = $this->config->cnpj;
         }
-        if ($cnpj == '') {
-            $cnpj = $this->aConfig['cnpj'];
-        }
-        $siglaUF = $this->aConfig['siglaUF'];
         //carrega serviço
         $servico = 'MDFeConsNaoEnc';
-        $this->zLoadServico(
-            'mdfe',
+        $this->servico(
             $servico,
-            $siglaUF,
-            $tpAmb
+            $this->config->siglaUF,
+            $this->tpAmb
         );
-        if ($this->urlService == '') {
-            $msg = "O serviço não está disponível na SEFAZ $siglaUF!!!";
-            throw new Exception\RuntimeException($msg);
-        }
-        $cons = "<consMDFeNaoEnc xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
-                . "<tpAmb>$tpAmb</tpAmb>"
+        $request = "<consMDFeNaoEnc xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
+                . "<tpAmb>$this->tpAmb</tpAmb>"
                 . "<xServ>CONSULTAR NÃO ENCERRADOS</xServ><CNPJ>$cnpj</CNPJ></consMDFeNaoEnc>";
-        //valida mensagem com xsd
-        //if (! $this->zValidMessage($cons, 'mdfe', 'consMDFeNaoEnc', $version)) {
-        //    $msg = 'Falha na validação. '.$this->error;
-        //    throw new Exception\RuntimeException($msg);
-        //}
+        $this->isValid($this->urlVersion, $request, 'consMDFeNaoEnc');
+        $this->lastRequest = $request;
         //montagem dos dados da mensagem SOAP
-        $body = "<mdefDadosMsg xmlns=\"$this->urlNamespace\">$cons</mdfeDadosMsg>";
-        //consome o webservice e verifica o retorno do SOAP
-        $retorno = $this->oSoap->send(
-            $this->urlService,
-            $this->urlNamespace,
-            $this->urlHeader,
-            $body,
-            $this->urlMethod
-        );
-        $lastMsg = $this->oSoap->lastMsg;
-        $this->soapDebug = $this->oSoap->soapDebug;
-        $datahora = date('Ymd_His');
-        //$filename = $siglaUF."_"."$datahora-consNaoEnc.xml";
-        //$this->zGravaFile('mdfe', $tpAmb, $filename, $lastMsg);
-        //$filename = $siglaUF."_"."$datahora-retConsNaoEnc.xml";
-        //$this->zGravaFile('mdfe', $tpAmb, $filename, $retorno);
-        //tratar dados de retorno
-        $aRetorno = Response::readReturnSefaz($servico, $retorno);
-        return (string) $retorno;
+        $parameters = ['mdfeDadosMsg' => $request];
+        $body = "<mdefDadosMsg xmlns=\"$this->urlNamespace\">$request</mdfeDadosMsg>";
+        return $this->sendRequest($body, $parameters);
     }
     
+
     /**
-     * zSefazEvento
-     *
-     * @param    string $siglaUF
-     * @param    string $chave
-     * @param    string $cOrgao
-     * @param    string $tpAmb
-     * @param    string $tpEvento
-     * @param    string $nSeqEvento
-     * @param    string $tagAdic
-     * @return   string
-     * @throws   Exception\RuntimeException
-     * @internal function zLoadServico (Common\Base\BaseTools)
+     * Send event to SEFAZ
+     * @param string $uf
+     * @param string $chave
+     * @param int $tpEvento
+     * @param int $nSeqEvento
+     * @param string $tagAdic
+     * @return string
      */
-    protected function zSefazEvento(
-        $siglaUF = '',
-        $chave = '',
-        $cOrgao = '',
-        $tpAmb = '2',
-        $tpEvento = '',
-        $nSeqEvento = '1',
+    public function sefazEvento(
+        $uf,
+        $chave,
+        $tpEvento,
+        $nSeqEvento = 1,
         $tagAdic = ''
     ) {
-        if ($tpAmb == '') {
-            $tpAmb = $this->aConfig['tpAmb'];
-        }
-        //carrega serviço
-        $servico = 'MDFeRecepcaoEvento';
-        $this->zLoadServico(
-            'mdfe',
+        $servico = 'RecepcaoEvento';
+        $this->checkContingencyForWebServices($servico);
+        $this->servico(
             $servico,
-            $siglaUF,
-            $tpAmb
+            $uf,
+            $this->tpAmb,
+            false
         );
-        if ($this->urlService == '') {
-            $msg = "A recepção de eventos não está disponível na SEFAZ $siglaUF!!!";
-            throw new Exception\RuntimeException($msg);
-        }
-        $aRet = $this->zTpEv($tpEvento);
-        $aliasEvento = $aRet['alias'];
-        $cnpj = $this->aConfig['cnpj'];
-        $dhEvento = date("Y-m-d\TH:i:sP");
+        $ev = $this->tpEv($tpEvento);
+        $aliasEvento = $ev->alias;
+        $descEvento = $ev->desc;
+        $cnpj = $this->config->cnpj;
+        $dt = new \DateTime();
+        $dhEvento = $dt->format('Y-m-d\TH:i:sP');
         $sSeqEvento = str_pad($nSeqEvento, 2, "0", STR_PAD_LEFT);
         $eventId = "ID".$tpEvento.$chave.$sSeqEvento;
-        if ($cOrgao == '') {
-            $cOrgao = $this->urlcUF;
-        }
-        $mensagem = "<eventoMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
+        $cOrgao = UFList::getCodeByUF($uf);
+        $request = "<eventoMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
             . "<infEvento Id=\"$eventId\">"
             . "<cOrgao>$cOrgao</cOrgao>"
-            . "<tpAmb>$tpAmb</tpAmb>"
+            . "<tpAmb>$this->tpAmb</tpAmb>"
             . "<CNPJ>$cnpj</CNPJ>"
             . "<chMDFe>$chave</chMDFe>"
             . "<dhEvento>$dhEvento</dhEvento>"
             . "<tpEvento>$tpEvento</tpEvento>"
             . "<nSeqEvento>$nSeqEvento</nSeqEvento>"
-            . "<detEvento versaoEvento=\"$this->urlVersion\">"
+            . "<verEvento>$this->urlVersion</verEvento>"
+            . "<detEvento versao=\"$this->urlVersion\">"
+            . "<descEvento>$descEvento</descEvento>"
             . "$tagAdic"
             . "</detEvento>"
             . "</infEvento>"
             . "</eventoMDFe>";
         //assinatura dos dados
-        $signedMsg = $this->oCertificate->signXML($mensagem, 'infEvento');
-        $cons = Strings::clearXml($signedMsg, true);
-        //valida mensagem com xsd
-        //no caso do evento nao tem xsd organizado, esta fragmentado
-        //e por vezes incorreto por isso essa validação está desabilitada
-        //if (! $this->zValidMessage($cons, 'mdfe', 'eventoMDFe', $version)) {
-        //    $msg = 'Falha na validação. '.$this->error;
-        //    throw new Exception\RuntimeException($msg);
-        //}
-        $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$cons</mdfeDadosMsg>";
-        //envia a solicitação via SOAP
-        $retorno = $this->oSoap->send(
-            $this->urlService,
-            $this->urlNamespace,
-            $this->urlHeader,
-            $body,
-            $this->urlMethod
+        $request = Signer::sign(
+            $this->certificate,
+            $request,
+            'infEvento',
+            'Id',
+            $this->algorithm,
+            $this->canonical
         );
-        $lastMsg = $this->oSoap->lastMsg;
-        $this->soapDebug = $this->oSoap->soapDebug;
-        //salva mensagens
-        $filename = "$chave-$aliasEvento-eventoMDFe.xml";
-        //$this->zGravaFile('mdfe', $tpAmb, $filename, $lastMsg);
-        //$filename = "$chave-$aliasEvento-retEventoMDFe.xml";
-        //$this->zGravaFile('mdfe', $tpAmb, $filename, $retorno);
-        //tratar dados de retorno
-        $this->aLastRetEvent = Response::readReturnSefaz($servico, $retorno);
-        return (string) $retorno;
+        $request = Strings::clearXmlString($request, true);
+        $lote = $dt->format('YmdHis').rand(0, 9);
+        $request = "<envEvento xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
+            . "<idLote>$lote</idLote>"
+            . $request
+            . "</envEvento>";
+        $this->isValid($this->urlVersion, $request, 'envEvento');
+        $this->lastRequest = $request;
+        $parameters = ['mdfeDadosMsg' => $request];
+        $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$request</mdfeDadosMsg>";
+        $this->lastResponse = $this->sendRequest($body, $parameters);
+        return $this->lastResponse;
     }
 
-    /**
-     * zTpEv
-     *
-     * @param  string $tpEvento
-     * @return array
-     * @throws Exception\RuntimeException
-     */
-    private function zTpEv($tpEvento = '')
+    private function tpEv($tpEvento = '')
     {
-        //montagem dos dados da mensagem SOAP
+        $std = new \stdClass();
+        $std->alias = '';
+        $std->desc = '';
         switch ($tpEvento) {
             case '110111':
                 //cancelamento
-                $aliasEvento = 'CancMDFe';
-                $descEvento = 'Cancelamento';
+                $std->alias = 'CancMDFe';
+                $std->desc = 'Cancelamento';
                 break;
             case '110112':
                 //encerramento
-                $aliasEvento = 'EncMDFe';
-                $descEvento = 'Encerramento';
+                $std->alias = 'EncMDFe';
+                $std->desc = 'Encerramento';
                 break;
             case '110114':
                 //inclusao do condutor
-                $aliasEvento = 'EvIncCondut';
-                $descEvento = 'Inclusao Condutor';
+                $std->alias = 'EvIncCondut';
+                $std->desc = 'Inclusao Condutor';
                 break;
             default:
                 $msg = "O código do tipo de evento informado não corresponde a "
                 . "nenhum evento estabelecido.";
-                throw new Exception\RuntimeException($msg);
+                throw new RuntimeException($msg);
         }
-        return array('alias' => $aliasEvento, 'desc' => $descEvento);
+        return $std;
     }
 
 }
