@@ -50,6 +50,7 @@ class Standardize
         'retEnviMDFe',
         'retInutMDFe',
         'retAdmCscNFCe',
+        'retConsStatServMDFe',
         'retConsStatServ',
         'procInutMDFe',
         'procEventoMDFe',
