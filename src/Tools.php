@@ -222,7 +222,7 @@ class Tools extends CommonTools
         $cons = "<consSitMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
                 . "<tpAmb>$tpAmb</tpAmb>"
                 . "<xServ>CONSULTAR</xServ>"
-                . "<chMDFe>$chMDFe</chMDFe>"
+                . "<chMDFe>$chave</chMDFe>"
                 . "</consSitMDFe>";
         $this->isValid($this->urlVersion, $cons, 'consSitMDFe');
         $this->lastRequest = $cons;
