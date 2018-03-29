@@ -335,7 +335,7 @@ class Tools extends CommonTools
             throw new InvalidArgumentException($msg);
         }
         $sxml = preg_replace("/<\?xml.*\?>/", "", $xml);
-        
+        $sxml = str_replace("\r", '', $sxml);
         $servico = 'MDFeRecepcao';
         $this->servico(
             $servico,
@@ -398,7 +398,7 @@ class Tools extends CommonTools
         //montagem dos dados da mensagem SOAP
         $parameters = ['mdfeDadosMsg' => $cons];
         $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$cons</mdfeDadosMsg>";
-        $this->lastRsponse = $this->sendRequest($body, $parameters);
+        $this->lastResponse = $this->sendRequest($body, $parameters);
 
         return $this->lastResponse;
     }
