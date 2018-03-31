@@ -36,7 +36,9 @@ class Standardize
      * @var array
      */
     public $rootTagList = [
+        'retConsSitMDFe',
         'envEvento',
+        'eventoMDFe',
         'consReciMDFe',
         'downloadMDFe',
         'enviMDFe',
@@ -44,7 +46,6 @@ class Standardize
         'consStatServ',
         'retEnvEvento',
         'retEventoMDFe',
-        'retConsSitMDFe',
         'retConsReciMDFe',
         'retDownloadMDFe',
         'retEnviMDFe',
