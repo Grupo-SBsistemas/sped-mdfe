@@ -9,7 +9,7 @@ use DOMDocument;
 
 class Complements
 {
-    protected static $urlPortal = 'http://www.portalfiscal.inf.br/nfe';
+    protected static $urlPortal = 'http://www.portalfiscal.inf.br/mdfe';
     /**
      * Authorize document adding his protocol
      * @param string $request
@@ -20,7 +20,7 @@ class Complements
     {
         $st = new Standardize();
         $key = ucfirst($st->whichIs($request));
-        if ($key != 'MDFe' && $key != 'EnvEvento') {
+        if ($key != 'MDFe' && $key != 'EventoMDFe') {
             //wrong document, this document is not able to recieve a protocol
             throw DocumentsException::wrongDocument(0, $key);
         }
@@ -163,25 +163,25 @@ class Complements
      * @return string
      * @throws InvalidArgumentException
      */
-    protected static function addEnvEventoProtocol($request, $response)
+    protected static function addEventoMDFeProtocol($request, $response)
     {
         $ev = new \DOMDocument('1.0', 'UTF-8');
         $ev->preserveWhiteSpace = false;
         $ev->formatOutput = false;
         $ev->loadXML($request);
         //extrai numero do lote do envio
-        $envLote = $ev->getElementsByTagName('idLote')->item(0)->nodeValue;
+        $envChave = $ev->getElementsByTagName('chMDFe')->item(0)->nodeValue;
         //extrai tag evento do xml origem (solicitação)
-        $event = $ev->getElementsByTagName('evento')->item(0);
+        $event = $ev->getElementsByTagName('eventoMDFe')->item(0);
         $versao = $event->getAttribute('versao');
         $ret = new \DOMDocument('1.0', 'UTF-8');
         $ret->preserveWhiteSpace = false;
         $ret->formatOutput = false;
         $ret->loadXML($response);
         //extrai numero do lote da resposta
-        $resLote = $ret->getElementsByTagName('idLote')->item(0)->nodeValue;
+        $resChave = $ret->getElementsByTagName('chMDFe')->item(0)->nodeValue;
         //extrai a rag retEvento da resposta (retorno da SEFAZ)
-        $retEv = $ret->getElementsByTagName('retEvento')->item(0);
+        $retEv = $ret->getElementsByTagName('retEventoMDFe')->item(0);
         $cStat  = $retEv->getElementsByTagName('cStat')->item(0)->nodeValue;
         $xMotivo = $retEv->getElementsByTagName('xMotivo')->item(0)->nodeValue;
         $tpEvento = $retEv->getElementsByTagName('tpEvento')->item(0)->nodeValue;
@@ -192,10 +192,10 @@ class Complements
         if (!in_array($cStat, $cStatValids)) {
             throw DocumentsException::wrongDocument(4, "[$cStat] $xMotivo");
         }
-        if ($resLote !== $envLote) {
+        if ($envChave !== $resChave) {
             throw DocumentsException::wrongDocument(
                 5,
-                "Os numeros de lote dos documentos são diferentes."
+                "Os numeros de chave dos documentos são diferentes."
             );
         }
         return self::join(
