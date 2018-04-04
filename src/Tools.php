@@ -166,7 +166,7 @@ class Tools extends CommonTools
             $msg = "Deve ser informado um recibo.";
             throw new InvalidArgumentException($msg);
         }
-        
+
         //carrega serviço
         $servico = 'MDFeRetRecepcao';
         $this->servico(
@@ -176,7 +176,7 @@ class Tools extends CommonTools
         );
 
         $cons = "<consReciMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
-            . "<tpAmb>$tpAmb</tpAmb>"
+            . "<tpAmb>$this->tpAmb</tpAmb>"
             . "<nRec>$recibo</nRec>"
             . "</consReciMDFe>";
         $this->isValid($this->urlVersion, $cons, 'consReciMDFe');
