@@ -160,23 +160,19 @@ class Tools extends CommonTools
      * @throws   Exception\RuntimeException
      * @internal function zLoadServico (Common\Base\BaseTools)
      */
-    public function sefazConsultaRecibo($recibo = '', $tpAmb = '2')
+    public function sefazConsultaRecibo($recibo = '')
     {
         if ($recibo == '') {
             $msg = "Deve ser informado um recibo.";
             throw new InvalidArgumentException($msg);
         }
-
-        if ($tpAmb == '') {
-            $tpAmb = $this->tpAmb;
-        }
-
+        
         //carrega serviço
         $servico = 'MDFeRetRecepcao';
         $this->servico(
             $servico,
             $this->config->siglaUF,
-            $tpAmb
+            $this->tpAmb
         );
 
         $cons = "<consReciMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
