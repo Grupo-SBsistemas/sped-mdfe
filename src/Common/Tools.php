@@ -320,7 +320,7 @@ class Tools
      * @return string singed NFe xml
      * @throws RuntimeException
      */
-    public function signNFe($xml)
+    public function signMDFe($xml)
     {
         //remove all invalid strings
         $xml = Strings::clearXmlString($xml);

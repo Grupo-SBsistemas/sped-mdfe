@@ -31,8 +31,6 @@ use NFePHP\Common\Exception\InvalidArgumentException;
 class Tools extends CommonTools
 {
 
-
-
     /**
      * errrors
      *
@@ -94,48 +92,47 @@ class Tools extends CommonTools
     }
 
     /**
-     * assina
-     *
-     * @param  string  $xml
-     * @param  boolean $saveFile
-     * @return string
-     * @throws Exception\RuntimeException
+     * Request authorization to issue MDFe in batch with one or more documents
+     * @param array $aXml array of mdfe's xml
+     * @param string $idLote lote number
+     * @param bool $compactar flag to compress data with gzip
+     * @return string soap response xml
      */
-    public function assina($xml = '', $saveFile = false)
-    {
-        return $this->assinaDoc($xml, 'mdfe', 'infMDFe', $saveFile);
-    }
-    
-    /**
-     * sefazEnviaLote
-     *
-     * @param    string $xml
-     * @param    string $tpAmb
-     * @param    string $idLote
-     * @param    array  $aRetorno
-     * @return   string
-     * @throws   Exception\InvalidArgumentException
-     * @throws   Exception\RuntimeException
-     * @internal function zLoadServico (Common\Base\BaseTools)
-     */
-    public function sefazEnviaLote($xml, $idLote) 
-    {
-        if (empty($xml)) {
-            $msg = "Pelo menos um MDFe deve ser informado.";
-            throw new InvalidArgumentException($msg);
+    public function sefazEnviaLote(
+        $aXml,
+        $idLote = '',
+        $compactar = false,
+        &$xmls = []
+    ) {
+        if (!is_array($aXml)) {
+            throw new \InvalidArgumentException('Os XML dos MDFe devem ser passados em um array.');
         }
-        $sxml = preg_replace("/<\?xml.*\?>/", "", $xml);
-        $sxml = str_replace("\r", '', $sxml);
         $servico = 'MDFeRecepcao';
+        $this->checkContingencyForWebServices($servico);
+        if ($this->contingency->type != '') {
+            //em modo de contingencia
+            //esses xml deverão ser modificados e re-assinados e retornados
+            //no parametro $xmls para serem armazenados pelo aplicativo
+            //pois serão alterados
+            foreach ($aXml as $doc) {
+                //corrigir o xml para o tipo de contigência setado
+                $xmls[] = $this->correctNFeForContingencyMode($doc);
+            }
+            $aXml = $xmls;
+        }
+
+        $sxml = implode("", $aXml);
+        $sxml = preg_replace("/<\?xml.*?\?>/", "", $sxml);
         $this->servico(
             $servico,
             $this->config->siglaUF,
             $this->tpAmb
         );
-        
-        //montagem dos dados da mensagem SOAP
+
         $request = "<enviMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
-                . "<idLote>$idLote</idLote>$sxml</enviMDFe>";
+            . "<idLote>$idLote</idLote>"
+            . "$sxml"
+            ." </enviMDFe>";
         $this->isValid($this->urlVersion, $request, 'enviMDFe');
         $this->lastRequest = $request;
 
@@ -143,49 +140,55 @@ class Tools extends CommonTools
         $parameters = ['mdfeDadosMsg' => $request];
         $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$request</mdfeDadosMsg>";
 
-        //envia a solicitação via SOAP
+        $method = $this->urlMethod;
+        if ($compactar) {
+            $gzdata = base64_encode(gzencode($cons, 9, FORCE_GZIP));
+            $body = "<mdfeDadosMsgZip xmlns=\"$this->urlNamespace\">$gzdata</mdfeDadosMsgZip>";
+            $method = $this->urlMethod."Zip";
+            $parameters = ['mdfeDadosMsgZip' => $gzdata];
+            $body = "<mdfeDadosMsgZip xmlns=\"$this->urlNamespace\">$gzdata</mdfeDadosMsgZip>";
+        }
+
         $this->lastResponse = $this->sendRequest($body, $parameters);
-        
         return $this->lastResponse;
     }
 
     /**
-     * sefazConsultaRecibo
-     *
-     * @param    string $recibo
-     * @param    string $tpAmb
-     * @param    array  $aRetorno
-     * @return   string
-     * @throws   Exception\InvalidArgumentException
-     * @throws   Exception\RuntimeException
-     * @internal function zLoadServico (Common\Base\BaseTools)
+     * Check status of Batch of MDFe sent by receipt of this shipment
+     * @param string $recibo
+     * @param int $tpAmb
+     * @return string
      */
-    public function sefazConsultaRecibo($recibo = '')
+    public function sefazConsultaRecibo($recibo, $tpAmb = null)
     {
-        if ($recibo == '') {
-            $msg = "Deve ser informado um recibo.";
-            throw new InvalidArgumentException($msg);
+        if (empty($tpAmb)) {
+            $tpAmb = $this->tpAmb;
         }
-
         //carrega serviço
         $servico = 'MDFeRetRecepcao';
+        $this->checkContingencyForWebServices($servico);
         $this->servico(
             $servico,
             $this->config->siglaUF,
-            $this->tpAmb
+            $tpAmb
         );
 
-        $cons = "<consReciMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
-            . "<tpAmb>$this->tpAmb</tpAmb>"
+        if ($this->urlService == '') {
+            $msg = "A consulta de MDFe não está disponível na SEFAZ {$this->config->siglaUF}!!!";
+            throw new RuntimeException($msg);
+        }
+
+        $request = "<consReciMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
+            . "<tpAmb>$tpAmb</tpAmb>"
             . "<nRec>$recibo</nRec>"
             . "</consReciMDFe>";
-        $this->isValid($this->urlVersion, $cons, 'consReciMDFe');
-        $this->lastRequest = $cons;
-        //montagem dos dados da mensagem SOAP
-        $parameters = ['mdfeDadosMsg' => $cons];
-        $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$cons</mdfeDadosMsg>";
-        $this->lastResponse = $this->sendRequest($body, $parameters);
 
+        $this->isValid($this->urlVersion, $request, 'consReciMDFe');
+        $this->lastRequest = $request;
+
+        $parameters = ['mdfeDadosMsg' => $request];
+        $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$request</mdfeDadosMsg>";
+        $this->lastResponse = $this->sendRequest($body, $parameters);
         return $this->lastResponse;
     }
 
