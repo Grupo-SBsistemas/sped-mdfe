@@ -2,10 +2,6 @@
     "title": "config",
     "type": "object",
     "properties": {
-        "atualizacao": {
-            "required": false,
-            "type": ["string", "null"]
-        },
         "tpAmb": {
             "required": true,
             "type": "integer",
@@ -34,28 +30,6 @@
         "versao": {
             "required": true,
             "type": "string"
-        },
-        "aProxyConf": {
-            "required": false,
-            "type": ["object","null"],
-            "properties": {
-                "proxyIp": {
-                    "required": false,
-                    "type": ["string","null"]
-                },
-                "proxyPort": {
-                    "required": false,
-                    "type": ["string","null"]
-                },
-                "proxyUser": {
-                    "required": false,
-                    "type": ["string","null"]
-                },
-                "proxyPass": {
-                    "required": false,
-                    "type": ["string","null"]
-                }
-            }
         }
     }
 }
