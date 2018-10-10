@@ -132,7 +132,7 @@ class Tools extends CommonTools
         $request = "<enviMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
             . "<idLote>$idLote</idLote>"
             . "$sxml"
-            ." </enviMDFe>";
+            . "</enviMDFe>";
         $this->isValid($this->urlVersion, $request, 'enviMDFe');
         $this->lastRequest = $request;
 

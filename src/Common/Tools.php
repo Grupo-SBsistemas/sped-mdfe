@@ -168,7 +168,7 @@ class Tools
      */
     protected $availableVersions = [
         '1.00' => 'PL_MDFe_100',
-        '3.00' => 'PL_MDFe_300'
+        '3.00' => 'PL_MDFe_300_NT012018'
     ];
     
     /**
@@ -372,6 +372,7 @@ class Tools
         if (!is_file($schema)) {
             return true;
         }
+
         return Validator::isValid(
             $body,
             $schema
