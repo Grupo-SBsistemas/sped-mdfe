@@ -290,14 +290,12 @@ class Tools extends CommonTools
      * sefazCancela
      *
      * @param  string $chave
-     * @param  string $tpAmb
-     * @param  string $xJust
      * @param  string $nProt
-     * @param  array  $aRetorno
+     * @param  string $xJust
      * @return string
      * @throws Exception\InvalidArgumentException
      */
-    public function sefazCancela($chave, $xJust, $nProt) {
+    public function sefazCancela($chave, $nProt, $xJust) {
         
         $uf = $this->validKeyByUF($chave);
         $xJust = Strings::replaceSpecialsChars(
@@ -366,11 +364,9 @@ class Tools extends CommonTools
      * sefazIncluiCondutor
      *
      * @param  string $chave
-     * @param  string $tpAmb
      * @param  string $nSeqEvento
      * @param  string $xNome
      * @param  string $cpf
-     * @param  array  $aRetorno
      * @return string
      * @throws Exception\InvalidArgumentException
      */
@@ -391,7 +387,8 @@ class Tools extends CommonTools
             $siglaUF, 
             $chave, 
             $tpEvento, 
-            $nSeqEvento
+            $nSeqEvento,
+            $tagAdic
         );
     }
 
@@ -423,7 +420,8 @@ class Tools extends CommonTools
         $this->lastRequest = $request;
         //montagem dos dados da mensagem SOAP
         $parameters = ['mdfeDadosMsg' => $request];
-        $body = "<mdefDadosMsg xmlns=\"$this->urlNamespace\">$request</mdfeDadosMsg>";
+        $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$request</mdfeDadosMsg>";
+
         return $this->sendRequest($body, $parameters);
     }
     

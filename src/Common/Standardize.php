@@ -57,7 +57,8 @@ class Standardize
         'procEventoMDFe',
         'procMDFe',
         'mdfeProc',
-        'MDFe'
+        'MDFe',
+        'mdfeConsNaoEncResult'
     ];
     
     /**
