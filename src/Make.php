@@ -434,12 +434,8 @@ class Make
             true,
             "Sigla das Unidades da Federação do percurso"
         );
-        if ($this->ide->getElementsByTagName("infPercurso")->length > 0) {
-            $node = $this->ide->getElementsByTagName("infPercurso")->item(0);
-        }else{
-            $node = $this->ide->getElementsByTagName("dhIniViagem")->item(0);
-        }
-        $this->ide->insertBefore($infPercurso, $node);
+
+        $this->ide->insertBefore($infPercurso, $this->ide->getElementsByTagName("dhIniViagem")->item(0));
         return $infPercurso;
     }
 
