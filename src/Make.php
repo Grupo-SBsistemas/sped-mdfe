@@ -1885,23 +1885,27 @@ class Make
      * @param  stdClass $std
      * @return DOMElement
      */
-    public function tagAutXML(stdClass $std)
+    public function tagautXML($std)
     {
-        $autXML = $this->dom->createElement("autXML");
-        $this->dom->addChild(
-            $autXML,
-            "CNPJ",
-            $std->CNPJ,
-            false,
-            "CNPJ do autorizado"
-        );
-        $this->dom->addChild(
-            $autXML,
-            "CPF",
-            $std->CPF,
-            false,
-            "CPF do autorizado"
-        );
+        $autXML = $this->dom->createElement('autXML');
+        if (isset($std->CNPJ) && $std->CNPJ != '') {
+            $this->dom->addChild(
+                $autXML,
+                'CNPJ',
+                $std->CNPJ,
+                true,
+                'CNPJ do Cliente Autorizado'
+            );
+        } elseif (isset($std->CPF) && $std->CPF != '') {
+            $this->dom->addChild(
+                $autXML,
+                'CPF',
+                $std->CPF,
+                true,
+                'CPF do Cliente Autorizado'
+            );
+        }
+
         $this->aAutXML[] = $autXML;
         return $autXML;
     }
