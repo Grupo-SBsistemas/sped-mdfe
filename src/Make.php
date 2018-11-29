@@ -140,6 +140,7 @@ class Make
     private $aPropVeicReboque = [];
     private $aLacRodo = [];
     private $aInfUnidTransp = [];
+    private $aSeg = [];
 
     /**
      * Função construtora cria um objeto DOMDocument
@@ -196,8 +197,8 @@ class Make
         $this->dom->appChild($this->infMDFe, $this->infDoc, 'Falta tag "infMDFe"');
         //tag seg [118]
 
-        if (isset($this->seg)){
-            $this->dom->appChild($this->infMDFe, $this->seg, 'Falta tag "infMDFe"');
+        if (count($this->aSeg) > 0){
+            $this->dom->addArrayChild($this->infMDFe, $this->aSeg, 'Falta tag "infMDFe"');
         }
 
         //tag tot [128]
@@ -215,6 +216,7 @@ class Make
         // testa da chave
         $this->checkNFeKey($this->dom);
         $this->xml = $this->dom->saveXML();
+
         return true;
     }
 
@@ -1716,40 +1718,8 @@ class Make
      */
     public function tagSeg(stdClass $std)
     {
-        $this->buildSeg();
-        $this->dom->addChild(
-            $this->seg,
-            "nApol",
-            $std->nApol,
-            false,
-            "Número da Apólice"
-        );
+        $seg = $this->dom->createElement("seg");
 
-        if (isset($std->aNAver)){
-            foreach ($std->aNAver as $nAver) {
-                $this->dom->addChild(
-                    $this->seg,
-                    "nAver",
-                    $nAver,
-                    false,
-                    "Número da Averbação"
-                );
-            }
-        }
-
-        return $this->seg;
-    }
-
-    /**
-     * tagInfResp
-     * tag MDFe/infMDFe/seg/infResp
-     *
-     * @param  stdClass $std
-     * @return DOMElement
-     */
-    public function tagInfResp(stdClass $std)
-    {
-        $this->buildSeg();
         $infResp = $this->dom->createElement("infResp");
         $this->dom->addChild(
             $infResp,
@@ -1779,20 +1749,8 @@ class Make
             );
         }
 
-        $this->dom->appChild($this->seg, $infResp);
-        return $infResp;
-    }
+        $this->dom->appChild($seg, $infResp);
 
-    /**
-     * tagInfSeg
-     * tag MDFe/infMDFe/seg/taginfSeg
-     *
-     * @param  stdClass $std
-     * @return DOMElement
-     */
-    public function tagInfSeg(stdClass $std)
-    {
-        $this->buildSeg();
         $infSeg = $this->dom->createElement("infSeg");
         $this->dom->addChild(
             $infSeg,
@@ -1808,8 +1766,30 @@ class Make
             false,
             "Número do CNPJ da seguradora"
         );
-        $this->dom->appChild($this->seg, $infSeg);
-        return $infSeg;
+        $this->dom->appChild($seg, $infSeg);
+
+        $this->dom->addChild(
+            $seg,
+            "nApol",
+            $std->nApol,
+            false,
+            "Número da Apólice"
+        );
+
+        if (isset($std->aNAver)){
+            foreach ($std->aNAver as $nAver) {
+                $this->dom->addChild(
+                    $seg,
+                    "nAver",
+                    $nAver,
+                    false,
+                    "Número da Averbação"
+                );
+            }
+        }
+
+        $this->aSeg[] = $seg;
+        return $seg;
     }
 
     /**
@@ -2206,18 +2186,6 @@ class Make
             }
 
             $this->dom->appChild($this->infDoc, $infMunDescarga, "infDoc");
-        }
-    }
-
-    /**
-     * Informações de Seguro da Carga
-     * tag MDFe/infMDFe/seg(opcional)
-     * Depende de infResp, infSeg
-     */
-    protected function buildSeg()
-    {
-        if (empty($this->seg)) {
-            $this->seg = $this->dom->createElement("seg");
         }
     }
 }
