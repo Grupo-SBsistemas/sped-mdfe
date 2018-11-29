@@ -195,7 +195,11 @@ class Make
         $this->buildInfDoc();
         $this->dom->appChild($this->infMDFe, $this->infDoc, 'Falta tag "infMDFe"');
         //tag seg [118]
-        $this->dom->appChild($this->infMDFe, $this->seg, 'Falta tag "infMDFe"');
+
+        if (isset($this->seg)){
+            $this->dom->appChild($this->infMDFe, $this->seg, 'Falta tag "infMDFe"');
+        }
+
         //tag tot [128]
         $this->dom->appChild($this->infMDFe, $this->tot, 'Falta tag "infMDFe"');
         //tag lacres [135]
@@ -1600,13 +1604,16 @@ class Make
             false,
             "Segundo código de barras do CTe"
         );
-        $this->dom->addChild(
-            $infCTe,
-            "indReentrega",
-            $std->indReentrega,
-            false,
-            "Indicador de Reentrega do CTe"
-        );
+
+        if (isset($std->indReentrega)){
+            $this->dom->addChild(
+                $infCTe,
+                "indReentrega",
+                $std->indReentrega,
+                false,
+                "Indicador de Reentrega do CTe"
+            );
+        }
         $this->aInfCTe[$std->nItem][] = $infCTe;
         return $infCTe;
     }
@@ -1665,13 +1672,16 @@ class Make
             false,
             "Segundo código de barras da NFe"
         );
-        $this->dom->addChild(
-            $infNFe,
-            "indReentrega",
-            $std->indReentrega,
-            false,
-            "Indicador de Reentrega da NFe"
-        );
+
+        if (isset($std->indReentrega)){
+            $this->dom->addChild(
+                $infNFe,
+                "indReentrega",
+                $std->indReentrega,
+                false,
+                "Indicador de Reentrega da NFe"
+            );
+        }
         $this->aInfNFe[$std->nItem][] = $infNFe;
         return $infNFe;
     }
@@ -1748,20 +1758,27 @@ class Make
             false,
             "Responsável pelo seguro"
         );
-        $this->dom->addChild(
-            $infResp,
-            "CNPJ",
-            $std->CNPJ,
-            false,
-            "Número do CNPJ do responsável pelo seguro"
-        );
-        $this->dom->addChild(
-            $infResp,
-            "CPF",
-            $std->CPF,
-            false,
-            "Número do CPF do responsável pelo seguro"
-        );
+
+        if (isset($std->CNPJ) && $std->CNPJ){
+            $this->dom->addChild(
+                $infResp,
+                "CNPJ",
+                $std->CNPJ,
+                false,
+                "Número do CNPJ do responsável pelo seguro"
+            );
+        }
+
+        if (isset($std->CPF) && $std->CPF){
+            $this->dom->addChild(
+                $infResp,
+                "CPF",
+                $std->CPF,
+                false,
+                "Número do CPF do responsável pelo seguro"
+            );
+        }
+
         $this->dom->appChild($this->seg, $infResp);
         return $infResp;
     }
