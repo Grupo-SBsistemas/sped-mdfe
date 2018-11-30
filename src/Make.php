@@ -2070,7 +2070,10 @@ class Make
         if (isset($this->aVeicReboque)) {
             foreach ($this->aVeicReboque as $nItem => $veicReboque){
                 $node = $this->aVeicReboque[$nItem]->getElementsByTagName("tpCar")->item(0);
-                $this->aVeicReboque[$nItem]->insertBefore($this->aPropVeicReboque[$nItem], $node);
+
+                if (isset($this->aPropVeicReboque[$nItem])){
+                    $this->aVeicReboque[$nItem]->insertBefore($this->aPropVeicReboque[$nItem], $node);
+                }
                 $this->rodo->appendChild($this->aVeicReboque[$nItem]);
             }
         }
