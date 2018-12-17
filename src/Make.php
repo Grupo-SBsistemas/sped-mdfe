@@ -141,6 +141,7 @@ class Make
     private $aLacRodo = [];
     private $aInfUnidTransp = [];
     private $aSeg = [];
+    private $aAutXML = [];
 
     /**
      * Função construtora cria um objeto DOMDocument
