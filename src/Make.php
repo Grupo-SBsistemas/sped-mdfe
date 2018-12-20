@@ -40,11 +40,6 @@ class Make
     public $versao = '3.00';
 
     /**
-     * @var string
-     */
-    public $chNFe;
-
-    /**
      * mod
      * modelo da MDFe 58
      *
@@ -172,7 +167,7 @@ class Make
      */
     public function getChave()
     {
-        return $this->chNFe;
+        return $this->chMDFe;
     }
 
     /**
@@ -215,7 +210,7 @@ class Make
         //[0] tag MDFe
         $this->dom->appendChild($this->MDFe);
         // testa da chave
-        $this->checkNFeKey($this->dom);
+        $this->checkMDFeKey($this->dom);
         $this->xml = $this->dom->saveXML();
 
         return true;
@@ -1962,7 +1957,7 @@ class Make
      * @param Dom $dom
      * @return void
      */
-    protected function checkNFeKey(Dom $dom)
+    protected function checkMDFeKey(Dom $dom)
     {
         $infMDFe = $dom->getElementsByTagName("infMDFe")->item(0);
         $ide = $dom->getElementsByTagName("ide")->item(0);
@@ -1989,16 +1984,14 @@ class Make
             $tpEmis,
             $cMDF
         );
-        //caso a chave contida na NFe esteja errada
-        //substituir a chave
-
+        
         if ($chaveMontada != $chave) {
             //throw new RuntimeException("A chave informada é diferente da chave
             //mondata com os dados [correto: $chaveMontada].");
             $ide->getElementsByTagName('cDV')->item(0)->nodeValue = substr($chaveMontada, -1);
             $infMDFe = $dom->getElementsByTagName("infMDFe")->item(0);
             $infMDFe->setAttribute("Id", "MDFe" . $chaveMontada);
-            $this->chNFe = $chaveMontada;
+            $this->chMDFe = $chaveMontada;
         }
     }
 
