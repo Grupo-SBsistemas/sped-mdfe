@@ -614,13 +614,16 @@ class Make
     public function tagRodo(stdClass $std)
     {
         $rodo = $this->dom->createElement("rodo");
-        /*$this->dom->addChild(
-            $rodo,
-            "codAgPorto",
-            $std->codAgPorto,
-            false,
-            "Código de Agendamento no porto"
-        );*/
+
+        if (isset($std->codAgPorto) && $std->codAgPorto){
+            $this->dom->addChild(
+                $rodo,
+                "codAgPorto",
+                $std->codAgPorto,
+                false,
+                "Código de Agendamento no porto"
+            );
+        }
         $this->rodo = $rodo;
         return $rodo;
     }
@@ -665,28 +668,6 @@ class Make
         $this->rodo->insertBefore($this->infANTT);
         return $this->infANTT;
     }
-
-    /*public function tagInfANTT(stdClass $std) {
-        if (!empty($std->RNTRC) || !empty($this->aInfCIOT)  || !empty($this->aInfContratante) ) {
-            $this->infANTT = $this->dom->createElement("infANTT");   
-        }        
-        $this->dom->addChild(
-            $this->infANTT,
-            "RNTRC",
-            $std->RNTRC,
-            false,
-            "Registro Nacional de Transportadores Rodoviários de Carga"
-        );
-        $this->dom->addArrayChild($this->infANTT, $this->aInfCIOT);
-        if (! empty($this->aDisp)){
-            $valePed = $this->dom->createElement("valePed");
-            foreach ($this->aDisp as $node) {
-                $this->dom->appChild($valePed, $node, '');
-            }
-            $this->dom->appChild($this->infANTT, $valePed, '');
-        }
-        $this->dom->addArrayChild($this->infANTT, $this->aInfContratante);
-    }*/
 
     /**
      * tagInfCIOT
@@ -2232,6 +2213,16 @@ class Make
         //lacRodo
         if (isset($this->aLacRodo)) {
             $this->dom->addArrayChild($this->rodo, $this->aLacRodo);
+        }
+
+        if ($this->rodo->getElementsByTagName('codAgPorto')->length > 0){
+            $codAgPorto = $this->rodo->removeChild($this->rodo->getElementsByTagName('codAgPorto')->item(0));
+
+            if ($this->rodo->getElementsByTagName('lacRodo')->length > 0){
+                $this->rodo->insertBefore($codAgPorto, $this->rodo->getElementsByTagName('lacRodo')->item(0));
+            } else {
+                $this->rodo->appendChild($codAgPorto);
+            }
         }
 
         $this->infModal->insertBefore($this->rodo);
