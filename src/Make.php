@@ -135,6 +135,7 @@ class Make
     private $aPropVeicReboque = [];
     private $aLacRodo = [];
     private $aInfUnidTransp = [];
+    private $aPeri = [];
     private $aInfUnidCarga = [];
     private $aSeg = [];
     private $aAutXML = [];
@@ -1618,8 +1619,74 @@ class Make
             $this->dom->addArrayChild($infCTe, $this->aInfUnidTransp[$std->nItemFilho]);
         }
 
+        if (isset($this->aPeri[$std->nItemFilho]) && count($this->aPeri[$std->nItemFilho]) > 0){
+            $this->dom->addArrayChild($infCTe, $this->aPeri[$std->nItemFilho]);
+        }
+
         $this->aInfCTe[$std->nItem][] = $infCTe;
         return $infCTe;
+    }
+
+    public function tagPeri(stdClass $std){
+        $peri = $this->dom->createElement("peri");
+        $this->dom->addChild(
+            $peri,
+            "nONU",
+            $std->nONU,
+            true,
+            "Número ONU/UN"
+        );
+
+        if (isset($std->xNomeAE) && $std->xNomeAE){
+            $this->dom->addChild(
+                $peri,
+                "xNomeAE",
+                $std->xNomeAE,
+                false,
+                "Nome apropriado para embarque do produto"
+            );
+        }
+
+        if (isset($std->xClaRisco) && $std->xClaRisco){
+            $this->dom->addChild(
+                $peri,
+                "xClaRisco",
+                $std->xClaRisco,
+                false,
+                "Classe ou subclasse/divisão, e risco subsidiário/risco secundário"
+            );
+        }
+
+        if (isset($std->grEmb) && $std->grEmb){
+            $this->dom->addChild(
+                $peri,
+                "grEmb",
+                $std->grEmb,
+                false,
+                "Grupo de Embalagem"
+            );
+        }
+
+        $this->dom->addChild(
+            $peri,
+            "qTotProd",
+            $std->qTotProd,
+            true,
+            "Quantidade total por produto"
+        );
+
+        if (isset($std->qVolTipo) && $std->qVolTipo){
+            $this->dom->addChild(
+                $peri,
+                "qVolTipo",
+                $std->qVolTipo,
+                false,
+                "Quantidade e Tipo de volumes"
+            );
+        }
+
+        $this->aPeri[$std->nItem][] = $peri;
+        return $peri;
     }
 
     public function tagInfUnidTransp(stdClass $std){
