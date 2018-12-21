@@ -135,6 +135,7 @@ class Make
     private $aPropVeicReboque = [];
     private $aLacRodo = [];
     private $aInfUnidTransp = [];
+    private $aInfUnidCarga = [];
     private $aSeg = [];
     private $aAutXML = [];
 
@@ -1612,6 +1613,11 @@ class Make
                 "Indicador de Reentrega do CTe"
             );
         }
+
+        if (isset($this->aInfUnidTransp[$std->nItemFilho]) && count($this->aInfUnidTransp[$std->nItemFilho]) > 0){
+            $this->dom->addArrayChild($infCTe, $this->aInfUnidTransp[$std->nItemFilho]);
+        }
+
         $this->aInfCTe[$std->nItem][] = $infCTe;
         return $infCTe;
     }
@@ -1632,18 +1638,92 @@ class Make
             false,
             "Identificação da Unidade de Transporte"
         );
-        $this->dom->addChild(
-            $infUnidTransp,
-            "qtdRat",
-            $std->qtdRat,
-            false,
-            "Quantidade rateada (Peso,Volume)"
-        );
 
+        if (isset($std->lacres) && count($std->lacres) > 0){
+            foreach ($std->lacres as $lacre) {
+                $lacres = $this->dom->createElement("lacUnidTransp");
 
+                $this->dom->addChild(
+                    $lacres,
+                    "nLacre",
+                    $lacre,
+                    true,
+                    "Número do lacre"
+                );
+
+                $this->dom->appChild(
+                    $infUnidTransp,
+                    $lacres
+                );
+            }
+        }
+
+        if (isset($this->aInfUnidCarga[$std->nItem]) && count($this->aInfUnidCarga[$std->nItem]) > 0){
+            $this->dom->addArrayChild($infUnidTransp, $this->aInfUnidCarga[$std->nItem]);
+        }
+
+        if (isset($std->qtdRat) && $std->qtdRat){
+            $this->dom->addChild(
+                $infUnidTransp,
+                "qtdRat",
+                $std->qtdRat,
+                false,
+                "Quantidade rateada (Peso,Volume)"
+            );
+        }
 
         $this->aInfUnidTransp[$std->nItem][] = $infUnidTransp;
         return $infUnidTransp;
+    }
+
+    public function tagInfUnidCarga(stdClass $std){
+        $infUnidCarga = $this->dom->createElement("infUnidCarga");
+        $this->dom->addChild(
+            $infUnidCarga,
+            "tpUnidCarga",
+            $std->tpUnidCarga,
+            true,
+            "Tipo da Unidade de Carga"
+        );
+        $this->dom->addChild(
+            $infUnidCarga,
+            "idUnidCarga",
+            $std->idUnidCarga,
+            false,
+            "Identificação da Unidade de Carga"
+        );
+
+        if (isset($std->lacres) && count($std->lacres) > 0){
+            foreach ($std->lacres as $lacre) {
+                $lacres = $this->dom->createElement("lacUnidCarga");
+
+                $this->dom->addChild(
+                    $lacres,
+                    "nLacre",
+                    $lacre,
+                    true,
+                    "Número do lacre"
+                );
+
+                $this->dom->appChild(
+                    $infUnidCarga,
+                    $lacres
+                );
+            }
+        }
+
+        if (isset($std->qtdRat) && $std->qtdRat){
+            $this->dom->addChild(
+                $infUnidCarga,
+                "qtdRat",
+                $std->qtdRat,
+                false,
+                "Quantidade rateada (Peso,Volume)"
+            );
+        }
+
+        $this->aInfUnidCarga[$std->nItem][] = $infUnidCarga;
+        return $infUnidCarga;
     }
 
     /**
@@ -1680,6 +1760,11 @@ class Make
                 "Indicador de Reentrega da NFe"
             );
         }
+
+        if (isset($this->aInfUnidTransp[$std->nItemFilho]) && count($this->aInfUnidTransp[$std->nItemFilho]) > 0){
+            $this->dom->addArrayChild($infNFe, $this->aInfUnidTransp[$std->nItemFilho]);
+        }
+
         $this->aInfNFe[$std->nItem][] = $infNFe;
         return $infNFe;
     }
