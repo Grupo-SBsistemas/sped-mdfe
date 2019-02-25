@@ -1864,26 +1864,26 @@ class Make
         $this->dom->addChild(
             $infResp,
             "respSeg",
-            $std->respSeg,
+            $std->respSeg->resp,
             false,
             "Responsável pelo seguro"
         );
 
-        if (isset($std->CNPJ) && $std->CNPJ){
+        if (isset($std->respSeg->CNPJ) && $std->respSeg->CNPJ){
             $this->dom->addChild(
                 $infResp,
                 "CNPJ",
-                $std->CNPJ,
+                $std->respSeg->CNPJ,
                 false,
                 "Número do CNPJ do responsável pelo seguro"
             );
         }
 
-        if (isset($std->CPF) && $std->CPF){
+        if (isset($std->respSeg->CPF) && $std->respSeg->CPF){
             $this->dom->addChild(
                 $infResp,
                 "CPF",
-                $std->CPF,
+                $std->respSeg->CPF,
                 false,
                 "Número do CPF do responsável pelo seguro"
             );
