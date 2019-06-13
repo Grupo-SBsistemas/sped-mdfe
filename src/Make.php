@@ -127,10 +127,10 @@ class Make
      */
     private $aquav;
 
-    /**     
-     * Informações do responsavel tecnico pela emissao do DF-e      
-     * @var \DOMNode        
-     */     
+    /**
+     * Informações do responsavel tecnico pela emissao do DF-e
+     * @var \DOMNode
+     */
     private $infRespTec = '';
 
     private $aLacres = [];
@@ -214,7 +214,7 @@ class Make
         //tag lacres [140]
         $this->dom->appChild($this->infMDFe, $this->infAdic, 'Falta tag "infMDFe"');
 
-        if ($this->infRespTec != '') {            
+        if ($this->infRespTec != '') {
             $this->dom->appChild($this->infMDFe, $this->infRespTec, 'Falta tag "infRespTec"');
         }
 
@@ -641,8 +641,8 @@ class Make
             $this->rodo = $this->dom->createElement("rodo");
         }
 
-        $this->infANTT = $this->dom->createElement("infANTT");   
-       
+        $this->infANTT = $this->dom->createElement("infANTT");
+
         $this->dom->addChild(
             $this->infANTT,
             "RNTRC",
@@ -820,13 +820,15 @@ class Make
             true,
             "Placa do veículo"
         );
-        $this->dom->addChild(
-            $veicTracao,
-            "RENAVAM",
-            $std->RENAVAM,
-            true,
-            "RENAVAM do veículo"
-        );
+        if(isset($std->RENAVAM)){
+            $this->dom->addChild(
+                $veicTracao,
+                "RENAVAM",
+                $std->RENAVAM,
+                true,
+                "RENAVAM do veículo"
+            );
+        }
         $this->dom->addChild(
             $veicTracao,
             "tara",
@@ -834,20 +836,24 @@ class Make
             true,
             "Tara em KG"
         );
-        $this->dom->addChild(
-            $veicTracao,
-            "capKG",
-            $std->capKG,
-            true,
-            "Capacidade em KG"
-        );
-        $this->dom->addChild(
-            $veicTracao,
-            "capM3",
-            $std->capM3,
-            true,
-            "Capacidade em M3"
-        );
+        if(isset($std->capKG)){
+            $this->dom->addChild(
+                $veicTracao,
+                "capKG",
+                $std->capKG,
+                true,
+                "Capacidade em KG"
+            );
+        }
+        if(isset($std->capM3)){
+            $this->dom->addChild(
+                $veicTracao,
+                "capM3",
+                $std->capM3,
+                true,
+                "Capacidade em M3"
+            );
+        }
         $this->dom->addChild(
             $veicTracao,
             "tpRod",
@@ -1011,13 +1017,15 @@ class Make
             true,
             "Placa do veículo"
         );
-        $this->dom->addChild(
-            $reboque,
-            "RENAVAM",
-            $std->RENAVAM,
-            true,
-            "RENAVAM do veículo"
-        );
+        if(isset($std->RENAVAM)){
+            $this->dom->addChild(
+                $reboque,
+                "RENAVAM",
+                $std->RENAVAM,
+                true,
+                "RENAVAM do veículo"
+            );
+        }
         $this->dom->addChild(
             $reboque,
             "tara",
@@ -1025,20 +1033,24 @@ class Make
             true,
             "Tara em KG"
         );
-        $this->dom->addChild(
-            $reboque,
-            "capKG",
-            $std->capKG,
-            true,
-            "Capacidade em KG"
-        );
-        $this->dom->addChild(
-            $reboque,
-            "capM3",
-            $std->capM3,
-            true,
-            "Capacidade em M3"
-        );
+        if(isset($std->capKG)){
+            $this->dom->addChild(
+                $reboque,
+                "capKG",
+                $std->capKG,
+                true,
+                "Capacidade em KG"
+            );
+        }
+        if(isset($std->capM3)){
+            $this->dom->addChild(
+                $reboque,
+                "capM3",
+                $std->capM3,
+                true,
+                "Capacidade em M3"
+            );
+        }
         $this->dom->addChild(
             $reboque,
             "tpCar",
@@ -2082,7 +2094,7 @@ class Make
      *
      * @return \DOMElement
      */
-    public function taginfRespTec($std) 
+    public function taginfRespTec($std)
     {
         $identificador = '# <infRespTec> - ';
         $this->infRespTec = $this->dom->createElement('infRespTec');
@@ -2092,7 +2104,7 @@ class Make
             $std->CNPJ,
             true,
             $identificador . 'CNPJ responsável'
-        );        
+        );
         $this->dom->addChild(
             $this->infRespTec,
             'xContato',
@@ -2106,7 +2118,7 @@ class Make
             $std->email,
             true,
             $identificador . 'E-mail responsavel'
-        );        
+        );
         $this->dom->addChild(
             $this->infRespTec,
             'fone',
@@ -2169,7 +2181,7 @@ class Make
             $tpEmis,
             $cMDF
         );
-        
+
         if ($chaveMontada != $chave) {
             //throw new RuntimeException("A chave informada é diferente da chave
             //mondata com os dados [correto: $chaveMontada].");
