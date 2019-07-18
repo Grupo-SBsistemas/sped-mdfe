@@ -168,7 +168,7 @@ class Tools
      */
     protected $availableVersions = [
         '1.00' => 'PL_MDFe_100',
-        '3.00' => 'PL_MDFe_300_NT012018'
+        '3.00' => 'PL_MDFe_300a'
     ];
     
     /**

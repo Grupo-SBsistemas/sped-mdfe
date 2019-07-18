@@ -133,6 +133,16 @@ class Make
      */
     private $infRespTec = '';
 
+    /**
+     * @var DOMElement
+     */
+    protected $qrCodMDFe;
+
+    /**
+     * @var DOMElement
+     */
+    protected $infMDFeSupl;
+
     private $aLacres = [];
     private $aInfCIOT = [];
     private $aInfContratante = [];
@@ -218,8 +228,19 @@ class Make
             $this->dom->appChild($this->infMDFe, $this->infRespTec, 'Falta tag "infRespTec"');
         }
 
+        //QrCode
+        if ($this->qrCodMDFe){
+            $this->dom->appChild($this->infMDFeSupl, $this->qrCodMDFe, 'Falta tag "qrCodMDFe');
+        }
+
         //[1] tag infNFe [1]
         $this->dom->appChild($this->MDFe, $this->infMDFe, 'Falta tag "MDFe"');
+
+        //infMDFeSupl
+        if ($this->infMDFeSupl){
+            $this->dom->appChild($this->MDFe, $this->infMDFeSupl,'Falta a tag "infMDFeSupl');
+        }
+
         //[0] tag MDFe
         $this->dom->appendChild($this->MDFe);
         // testa da chave
@@ -2127,6 +2148,34 @@ class Make
             $identificador . 'Telefone responsavel'
         );
         return $this->infRespTec;
+    }
+
+    /**
+     * Informações suplementares do MDF-e
+     * @param stdClass $std
+     * @return DOMElement
+     */
+    public function taginfMDFeSupl()
+    {
+        $infMDFeSupl = $this->dom->createElement("infMDFeSupl");
+        $this->infMDFeSupl = $infMDFeSupl;
+        return $infMDFeSupl;
+    }
+    /**
+     * Add QRCode Tag to signed XML from a MDFe
+     * @param DOMDocument $dom
+     * @return string
+     */
+    public function tagQRCode($chave)
+    {
+        $qrCodMDFe =  $this->dom->addChild(
+            $this->infMDFeSupl,
+            'qrCodMDFe',
+            "https://dfe-portal.svrs.rs.gov.br/mdfe/qrCode?chMDFe={$chave}&tpAmb={$this->tpAmb}",
+            true, 'QRCode de consulta'
+        );
+        $this->qrCodMDFe = $qrCodMDFe;
+        return $qrCodMDFe;
     }
 
     /**
