@@ -295,7 +295,7 @@ class Tools extends CommonTools
      * @return string
      * @throws Exception\InvalidArgumentException
      */
-    public function sefazCancela($chave, $nProt, $xJust) {
+    public function sefazCancela($chave, $nProt, $xJust, $retornarXML = false) {
         
         $uf = $this->validKeyByUF($chave);
         $xJust = Strings::replaceSpecialsChars(
@@ -312,7 +312,8 @@ class Tools extends CommonTools
             $chave,
             $tpEvento,
             $nSeqEvento,
-            $tagAdic
+            $tagAdic,
+            $retornarXML
         );
     }
 
@@ -332,7 +333,8 @@ class Tools extends CommonTools
         $chave = '',
         $nProt = '',
         $cUF = '',
-        $cMun = ''
+        $cMun = '',
+        $retornarXML = false
     ) {
 
         $siglaUF = $this->validKeyByUF($chave);
@@ -356,7 +358,8 @@ class Tools extends CommonTools
             $chave,
             $tpEvento,
             $nSeqEvento,
-            $tagAdic
+            $tagAdic,
+            $retornarXML
         );
     }
 
@@ -440,7 +443,8 @@ class Tools extends CommonTools
         $chave,
         $tpEvento,
         $nSeqEvento = 1,
-        $tagAdic = ''
+        $tagAdic = '',
+        $retornarXML
     ) {
         $servico = 'MDFeRecepcaoEvento';
         $this->checkContingencyForWebServices($servico);
@@ -478,6 +482,10 @@ class Tools extends CommonTools
         $request = "<eventoMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
             . $request
             . "</eventoMDFe>";
+
+        if ($retornarXML){
+            return ['assinar' => $request];
+        }
 
         //assinatura dos dados
         $request = Signer::sign(
