@@ -948,16 +948,14 @@ class Make
             true,
             "Razão Social ou Nome do proprietário"
         );
-
-        if (isset($std->IE)){
-            $this->dom->addChild(
-                $this->propVeicTracao,
-                "IE",
-                $std->IE,
-                true,
-                "Inscrição Estadual"
-            );
-        }
+        
+        $this->dom->addChild(
+            $this->propVeicTracao,
+            "IE",
+            $std->IE,
+            true,
+            "Inscrição Estadual"
+        );
 
         if (isset($std->UF)){
             $this->dom->addChild(
@@ -1136,15 +1134,13 @@ class Make
             "Razão Social ou Nome do proprietário"
         );
 
-        if (isset($std->IE)){
-            $this->dom->addChild(
-                $propVeicReboque,
-                "IE",
-                $std->IE,
-                true,
-                "Inscrição Estadual"
-            );
-        }
+        $this->dom->addChild(
+            $propVeicReboque,
+            "IE",
+            $std->IE,
+            true,
+            "Inscrição Estadual"
+        );
 
         if (isset($std->UF)){
             $this->dom->addChild(
