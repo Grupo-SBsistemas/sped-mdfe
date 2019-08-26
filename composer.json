@@ -17,9 +17,15 @@
             "homepage": "https://github.com/nfephp-org/sped-mdfe/graphs/contributors"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/fonini/sped-common.git"
+        }
+    ],
     "require": {
         "php" : ">=5.6",
-        "nfephp-org/sped-common" : "^5.0",
+        "fonini/sped-common" : "dev-master",
         "justinrainbow/json-schema": "^5.2"
     },
     "require-dev": {
