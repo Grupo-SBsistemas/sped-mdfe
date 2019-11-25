@@ -230,7 +230,7 @@ class Tools extends CommonTools
         $parameters = ['mdfeDadosMsg' => $cons];
         $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$cons</mdfeDadosMsg>";
         $this->lastResponse = $this->sendRequest($body, $parameters);
-        
+
         return $this->lastResponse;
     }
 
@@ -258,7 +258,7 @@ class Tools extends CommonTools
             $siglaUF = $this->config->siglaUF;
             $ignoreContingency = false;
         }
-        
+
         $servico = 'MDFeStatusServico';
         $this->checkContingencyForWebServices($servico);
         $this->servico(
@@ -267,7 +267,7 @@ class Tools extends CommonTools
             $tpAmb,
             $ignoreContingency
         );
-        
+
         if ($this->urlService == '') {
             $msg = "O status não está disponível na SEFAZ $siglaUF!!!";
             throw new Exception\RuntimeException($msg);
@@ -296,7 +296,7 @@ class Tools extends CommonTools
      * @throws Exception\InvalidArgumentException
      */
     public function sefazCancela($chave, $nProt, $xJust, $retornarXML = false) {
-        
+
         $uf = $this->validKeyByUF($chave);
         $xJust = Strings::replaceSpecialsChars(
             substr(trim($xJust), 0, 255)
@@ -347,12 +347,12 @@ class Tools extends CommonTools
         //estabelece o codigo do tipo de evento ENCERRAMENTO
         $tpEvento = '110112';
         $nSeqEvento = '1';
-        
+
         $dtEnc = date('Y-m-d');
         $tagAdic = "<evEncMDFe><descEvento>Encerramento</descEvento>"
                 . "<nProt>$nProt</nProt><dtEnc>$dtEnc</dtEnc><cUF>$cUF</cUF>"
                 . "<cMun>$cMun</cMun></evEncMDFe>";
-        
+
         return $this->sefazEvento(
             $siglaUF,
             $chave,
@@ -377,7 +377,8 @@ class Tools extends CommonTools
         $chave = '',
         $nSeqEvento = '1',
         $xNome = '',
-        $cpf = ''
+        $cpf = '',
+        $retornarXML = false
     ) {
         $siglaUF = $this->validKeyByUF($chave);
         //estabelece o codigo do tipo de evento Inclusão de condutor
@@ -387,11 +388,12 @@ class Tools extends CommonTools
                 . "<condutor><xNome>$xNome</xNome><CPF>$cpf</CPF></condutor></evIncCondutorMDFe>";
 
         return $this->sefazEvento(
-            $siglaUF, 
-            $chave, 
-            $tpEvento, 
+            $siglaUF,
+            $chave,
+            $tpEvento,
             $nSeqEvento,
-            $tagAdic
+            $tagAdic,
+            $retornarXML
         );
     }
 
@@ -427,7 +429,7 @@ class Tools extends CommonTools
 
         return $this->sendRequest($body, $parameters);
     }
-    
+
 
     /**
      * Send event to SEFAZ
@@ -475,9 +477,9 @@ class Tools extends CommonTools
             . "$tagAdic"
             . "</detEvento>"
             . "</infEvento>";
-        
-        
-        
+
+
+
         $lote = $dt->format('YmdHis').rand(0, 9);
         $request = "<eventoMDFe xmlns=\"$this->urlPortal\" versao=\"$this->urlVersion\">"
             . $request
@@ -498,12 +500,12 @@ class Tools extends CommonTools
         );
         $request = Strings::clearXmlString($request, true);
         $this->isValid($this->urlVersion, $request, 'eventoMDFe');
- 
+
         $this->lastRequest = $request;
         $parameters = ['mdfeDadosMsg' => $request];
         $body = "<mdfeDadosMsg xmlns=\"$this->urlNamespace\">$request</mdfeDadosMsg>";
         $this->lastResponse = $this->sendRequest($body, $parameters);
-        
+
         return $this->lastResponse;
     }
 
