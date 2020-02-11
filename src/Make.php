@@ -948,7 +948,7 @@ class Make
             true,
             "Razão Social ou Nome do proprietário"
         );
-        
+
         $this->dom->addChild(
             $this->propVeicTracao,
             "IE",
@@ -2164,10 +2164,11 @@ class Make
      */
     public function tagQRCode($chave)
     {
+        $url = htmlspecialchars("https://dfe-portal.svrs.rs.gov.br/mdfe/qrCode?chMDFe={$chave}&tpAmb={$this->tpAmb}");
         $qrCodMDFe =  $this->dom->addChild(
             $this->infMDFeSupl,
             'qrCodMDFe',
-            "https://dfe-portal.svrs.rs.gov.br/mdfe/qrCode?chMDFe={$chave}&tpAmb={$this->tpAmb}",
+            $url,
             true, 'QRCode de consulta'
         );
         $this->qrCodMDFe = $qrCodMDFe;
