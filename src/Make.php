@@ -407,6 +407,14 @@ class Make
             true,
             $identificador . "Data e hora previstos de inicio da viagem"
         );
+        $this->dom->addChild(
+            $ide,
+            "indCarregaPosterior",
+            $std->indCarregaPosterior,
+            false,
+            $identificador . "Indicador de MDF-e com inclusão da Carga posterior a emissão por evento de inclusão de DF-e"
+        );
+
         $this->mod = $std->mod;
         $this->ide = $ide;
         return $ide;
