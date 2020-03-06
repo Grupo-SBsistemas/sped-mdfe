@@ -398,6 +398,46 @@ class Tools extends CommonTools
     }
 
     /**
+     * sefazIncluiDFe
+     *
+     * @param  string $chave
+     * @param  object $std
+     * @param  string $nSeqEvento
+     * @return string
+     * @throws Exception\InvalidArgumentException
+     */
+    public function sefazIncluiDFe(
+        $chave = '',
+        $std,
+        $nSeqEvento = '1',
+        $retornarXML = false
+    ) {
+        $siglaUF = $this->validKeyByUF($chave);
+        //estabelece o codigo do tipo de evento Inclusão de DFe
+        $tpEvento = '110115';
+        //monta mensagem
+        $tagAdic = "<evIncDFeMDFe><descEvento>Inclusao DF-e</descEvento>"
+                . "<nProt>$std->nProt</nProt><cMunCarrega>$std->cMunCarrega</cMunCarrega><xMunCarrega>$std->xMunCarrega</xMunCarrega>";
+
+        foreach($std->infDocs as $infDoc) {
+            $tagAdic .= "<infDoc><cMunDescarga>{$infDoc->cMunDescarga}</cMunDescarga>"
+                    . "<xMunDescarga>{$infDoc->xMunDescarga}</xMunDescarga>"
+                    . "<chNFe>{$infDoc->chNFe}</chNFe></infDoc>";
+        }
+
+        $tagAdic .= "</evIncDFeMDFe>";
+
+        return $this->sefazEvento(
+            $siglaUF,
+            $chave,
+            $tpEvento,
+            $nSeqEvento,
+            $tagAdic,
+            $retornarXML
+        );
+    }
+
+    /**
      * sefazConsultaNaoEncerrados
      *
      * @param  string $tpAmb
@@ -529,6 +569,11 @@ class Tools extends CommonTools
                 //inclusao do condutor
                 $std->alias = 'EvIncCondut';
                 $std->desc = 'Inclusao Condutor';
+                break;
+            case '110115':
+                //inclusao de DF-e
+                $std->alias = 'evIncDFeMDFe';
+                $std->desc = 'Inclusao DF-e';
                 break;
             default:
                 $msg = "O código do tipo de evento informado não corresponde a "
