@@ -160,6 +160,9 @@ class Make
     private $aInfUnidCarga = [];
     private $aSeg = [];
     private $aAutXML = [];
+    private $aInfCTe = [];
+    private $aInfNFe = [];
+    private $aInfMDFe = [];
 
     /**
      * Função construtora cria um objeto DOMDocument
@@ -226,7 +229,7 @@ class Make
             if (($tpEmit == 1 || $tpEmit == 3) && empty($this->prodPred)) {
                 $this->errors[] = "Tag prodPred é obrigatória para modal rodoviário!";
             }
-            if (empty($this->infLotacao) and ($this->contaDoc($this->infCTe) + $this->contaDoc($this->infNFe) + $this->contaDoc($this->infMDFeTransp)) == 1) {
+            if (empty($this->infLotacao) and ($this->contaDoc($this->aInfCTe) + $this->contaDoc($this->aInfNFe) + $this->contaDoc($this->aInfMDFe)) == 1) {
                 $this->errors[] = "Tag infLotacao é obrigatória quando só existir um Documento informado!";
             }
         }
@@ -2090,6 +2093,7 @@ class Make
                 "Longitude do ponto geográfico onde foi carregado o MDF-e"
             );
         }
+
         return $tagLocalCarrega;
     }
 
