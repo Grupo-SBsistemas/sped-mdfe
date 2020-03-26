@@ -143,6 +143,11 @@ class Make
      */
     protected $infMDFeSupl;
 
+    /**
+     * @type string|\DOMNode
+     */
+    private $prodPred = null;
+
     private $aLacres = [];
     private $aInfCIOT = [];
     private $aInfContratante = [];
@@ -189,6 +194,19 @@ class Make
     }
 
     /**
+     * @param $indDoc
+     * @return int|void
+     */
+    private function contaDoc($indDoc)
+    {
+        $total = 0;
+        foreach ($indDoc as $doc) {
+            $total += count($doc);
+        }
+        return $total;
+    }
+
+    /**
      * Mdfe xml mount method
      * @return boolean
      */
@@ -203,6 +221,15 @@ class Make
         $this->dom->appChild($this->infMDFe, $this->ide, 'Falta tag "infMDFe"');
         //tag emit [27]
         $this->dom->appChild($this->infMDFe, $this->emit, 'Falta tag "infMDFe"');
+        if ($this->rodo) {
+            $tpEmit = $this->ide->getElementsByTagName('tpEmit')->item(0)->nodeValue;
+            if (($tpEmit == 1 || $tpEmit == 3) && empty($this->prodPred)) {
+                $this->errors[] = "Tag prodPred é obrigatória para modal rodoviário!";
+            }
+            if (empty($this->infLotacao) and ($this->contaDoc($this->infCTe) + $this->contaDoc($this->infNFe) + $this->contaDoc($this->infMDFeTransp)) == 1) {
+                $this->errors[] = "Tag infLotacao é obrigatória quando só existir um Documento informado!";
+            }
+        }
         //tag infModal [43]
         $this->buildInfModal();
         $this->dom->appChild($this->infMDFe, $this->infModal, 'Falta tag "infMDFe"');
@@ -213,6 +240,10 @@ class Make
 
         if (count($this->aSeg) > 0){
             $this->dom->addArrayChild($this->infMDFe, $this->aSeg, 'Falta tag "infMDFe"');
+        }
+
+        if (!empty($this->prodPred)) {
+            $this->dom->appChild($this->infMDFe, $this->prodPred, 'Falta tag "prodPred"');
         }
 
         //tag tot [128]
@@ -1967,6 +1998,132 @@ class Make
 
         $this->aSeg[] = $seg;
         return $seg;
+    }
+
+        /**
+     * tagprodPred
+     * tag MDFe/infMDFe/prodPred
+     *
+     * @param  stdClass $std
+     * @return DOMElement
+     */
+    public function tagprodPred($std)
+    {
+        $this->prodPred = $this->dom->createElement("prodPred");
+        $this->dom->addChild(
+            $this->prodPred,
+            "tpCarga",
+            $std->tpCarga,
+            true,
+            "Tipo da Carga. 01-Granel sólido; 02-Granel líquido; 03-Frigorificada; 04-Conteinerizada; 05-Carga Geral; 06-Neogranel; 07-Perigosa (granel sólido); 08-Perigosa (granel líquido); 09-Perigosa (carga frigorificada); 10-Perigosa (conteinerizada); 11-Perigosa (carga geral)."
+        );
+        $this->dom->addChild(
+            $this->prodPred,
+            "xProd",
+            $std->xProd,
+            true,
+            "Descrição do produto predominante"
+        );
+        $this->dom->addChild(
+            $this->prodPred,
+            "cEAN",
+            $std->cEAN,
+            false,
+            "GTIN (Global Trade Item Number) do produto, antigo código EAN ou código de barras"
+        );
+        $this->dom->addChild(
+            $this->prodPred,
+            "NCM",
+            $std->NCM,
+            false,
+            "Código NCM"
+        );
+        if (!empty($std->infLotacao)) {
+            $this->dom->appChild($this->prodPred, $this->taginfLotacao($std->infLotacao), 'Falta tag "infLotacao"');
+        }
+        return $this->prodPred;
+    }
+
+    /**
+     *
+     */
+    private function taginfLotacao(stdClass $std)
+    {
+        $this->infLotacao = $this->dom->createElement("infLotacao");
+        if (!empty($std->infLocalCarrega)) {
+            $this->dom->appChild($this->infLotacao, $this->tagLocalCarrega($std->infLocalCarrega), 'Falta tag "infLocalCarrega"');
+        }
+        if (!empty($std->infLocalDescarrega)) {
+            $this->dom->appChild($this->infLotacao, $this->tagLocalDescarrega($std->infLocalDescarrega), 'Falta tag "infLocalDescarrega"');
+        }
+        return $this->infLotacao;
+    }
+
+      /**
+     * Informações da localização do carregamento do MDF-e de carga lotação
+     *
+     */
+    private function tagLocalCarrega(stdClass $std)
+    {
+        $tagLocalCarrega = $this->dom->createElement("infLocalCarrega");
+        if (!empty($std->CEP)) {
+            $this->dom->addChild(
+                $tagLocalCarrega,
+                "CEP",
+                $std->CEP,
+                true,
+                "CEP onde foi carregado o MDF-e"
+            );
+        } else {
+            $this->dom->addChild(
+                $tagLocalCarrega,
+                "latitude",
+                $std->latitude,
+                true,
+                "Latitude do ponto geográfico onde foi carregado o MDF-e"
+            );
+            $this->dom->addChild(
+                $tagLocalCarrega,
+                "longitude",
+                $std->longitude,
+                true,
+                "Longitude do ponto geográfico onde foi carregado o MDF-e"
+            );
+        }
+        return $tagLocalCarrega;
+    }
+
+    /**
+     * Informações da localização do descarregamento do MDF-e de carga lotação
+     */
+    private function tagLocalDescarrega(stdClass $std)
+    {
+        $tagLocalDescarrega = $this->dom->createElement("infLocalDescarrega");
+        if (!empty($std->CEP)) {
+            $this->dom->addChild(
+                $tagLocalDescarrega,
+                "CEP",
+                $std->CEP,
+                true,
+                "CEP onde foi descarregado o MDF-e"
+            );
+        } else {
+            $this->dom->addChild(
+                $tagLocalDescarrega,
+                "latitude",
+                $std->latitude,
+                true,
+                "Latitude do ponto geográfico onde foi descarregado o MDF-e"
+            );
+            $this->dom->addChild(
+                $tagLocalDescarrega,
+                "longitude",
+                $std->longitude,
+                true,
+                "Longitude do ponto geográfico onde foi descarregado o MDF-e"
+            );
+        }
+        return $tagLocalDescarrega;
     }
 
     /**
