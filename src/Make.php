@@ -237,6 +237,10 @@ class Make
             if (empty($this->infLotacao) and ($this->contaDoc($this->aInfCTe) + $this->contaDoc($this->aInfNFe) + $this->contaDoc($this->aInfMDFe)) == 1) {
                 $this->errors[] = "Tag infLotacao é obrigatória quando só existir um Documento informado!";
             }
+
+            if ($this->infPag) {
+                $this->dom->addArrayChild($this->infANTT, $this->infPag, 'Falta tag "infpag"');
+            }
         }
         //tag infModal [43]
         $this->buildInfModal();
@@ -246,9 +250,6 @@ class Make
         $this->dom->appChild($this->infMDFe, $this->infDoc, 'Falta tag "infMDFe"');
         //tag seg [118]
 
-        if ($this->infPag) {
-            $this->dom->addArrayChild($this->infANTT, $this->infPag, 'Falta tag "infpag"');
-        }
         if (count($this->aSeg) > 0){
             $this->dom->addArrayChild($this->infMDFe, $this->aSeg, 'Falta tag "infMDFe"');
         }
