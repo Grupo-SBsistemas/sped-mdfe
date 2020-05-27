@@ -157,6 +157,11 @@ class Make
     private $aAutXML = [];
 
     /**
+     * @type string|\DOMNode
+     */
+    private $infPag = [];
+
+    /**
      * Função construtora cria um objeto DOMDocument
      * que será carregado com o documento fiscal
      */
@@ -211,6 +216,9 @@ class Make
         $this->dom->appChild($this->infMDFe, $this->infDoc, 'Falta tag "infMDFe"');
         //tag seg [118]
 
+        if ($this->infPag) {
+            $this->dom->addArrayChild($this->infANTT, $this->infPag, 'Falta tag "infpag"');
+        }
         if (count($this->aSeg) > 0){
             $this->dom->addArrayChild($this->infMDFe, $this->aSeg, 'Falta tag "infMDFe"');
         }
@@ -2165,6 +2173,206 @@ class Make
         $this->infMDFeSupl = $infMDFeSupl;
         return $infMDFeSupl;
     }
+    /**
+     * Metodo responsavel para montagem da tag ingPag - Informações do Pagamento do Frete
+     *
+     * @param stdClass $std
+     * @return DOMElement
+     * @throws RuntimeException
+     */
+    public function taginfPag(stdClass $std)
+    {
+        $possible = [
+            'xNome',
+            'CPF',
+            'CNPJ',
+            'idEstrangeiro',
+            'Comp',
+            'vContrato',
+            'indPag',
+            'infPrazo',
+            'infBanc'
+        ];
+        $std = $this->equilizeParameters($std, $possible);
+        $infPag = $this->dom->createElement("infPag");
+        $identificador = '[4] <infPag> - ';
+        $this->dom->addChild(
+            $infPag,
+            "xNome",
+            $std->xNome,
+            true,
+            $identificador . "Nome do responsável pelo pgto"
+        );
+        if (!empty($std->CPF)) {
+            $this->dom->addChild(
+                $infPag,
+                "CPF",
+                $std->CPF,
+                true,
+                $identificador . "Número do CPF do responsável pelo pgto"
+            );
+        } elseif (!empty($std->CNPJ)) {
+            $this->dom->addChild(
+                $infPag,
+                "CNPJ",
+                $std->CNPJ,
+                true,
+                $identificador . "Número do CNPJ do responsável pelo pgto"
+            );
+        } else {
+            $this->dom->addChild(
+                $infPag,
+                "idEstrangeiro",
+                $std->idEstrangeiro,
+                true,
+                $identificador . "Identificador do responsável pelo pgto em caso de ser estrangeiro"
+            );
+        }
+        foreach ($std->Comp as $value) {
+            $this->dom->appChild($infPag, $this->compPag($value), 'Falta tag "Comp"');
+        }
+        $this->dom->addChild(
+            $infPag,
+            "vContrato",
+            $std->vContrato,
+            true,
+            $identificador . "Valor total do contrato"
+        );
+        $this->dom->addChild(
+            $infPag,
+            "indPag",
+            $std->indPag,
+            true,
+            $identificador . "Indicador da Forma de Pagamento"
+        );
+        if ($std->indPag == 1) {
+            foreach ($std->infPrazo as $value) {
+                $this->dom->appChild($infPag, $this->infPrazo($value), 'Falta tag "infPrazo"');
+            }
+        }
+        $this->dom->appChild($infPag, $this->infBanc($std->infBanc), 'Falta tag "infBanc"');
+        $this->infPag[] = $infPag;
+        return $infPag;
+    }
+
+    /**
+     * Componentes do Pagamento do Frete
+     * @param stdClass
+     *
+     */
+    private function compPag(stdClass $std)
+    {
+        $possible = [
+            'tpComp',
+            'vComp',
+            'xComp'
+        ];
+        $stdComp = $this->equilizeParameters($std, $possible);
+        $comp = $this->dom->createElement("Comp");
+        $identificador = '[4] <Comp> - ';
+        $this->dom->addChild(
+            $comp,
+            "tpComp",
+            $stdComp->tpComp,
+            true,
+            $identificador . "Tipo do Componente"
+        );
+        $this->dom->addChild(
+            $comp,
+            "vComp",
+            $stdComp->vComp,
+            true,
+            $identificador . "Valor do Componente"
+        );
+        $this->dom->addChild(
+            $comp,
+            "xComp",
+            $stdComp->xComp,
+            false,
+            $identificador . "Descrição do componente do tipo Outros"
+        );
+        return $comp;
+    }
+
+    /***
+     * Informações do pagamento a prazo. Obs: Informar somente se indPag for à Prazo.
+     *
+     */
+    private function infPrazo(stdClass $std)
+    {
+        $possible = [
+            'nParcela',
+            'dVenc',
+            'vParcela'
+        ];
+        $stdPraz = $this->equilizeParameters($std, $possible);
+        $prazo = $this->dom->createElement("infPrazo");
+        $identificador = '[4] <infPrazo> - ';
+        $this->dom->addChild(
+            $prazo,
+            "nParcela",
+            $stdPraz->nParcela,
+            false,
+            $identificador . "Número da parcela"
+        );
+        $this->dom->addChild(
+            $prazo,
+            "dVenc",
+            $stdPraz->dVenc,
+            false,
+            $identificador . "Data de vencimento da Parcela (AAAA-MMDD)"
+        );
+        $this->dom->addChild(
+            $prazo,
+            "vParcela",
+            $stdPraz->vParcela,
+            true,
+            $identificador . "Valor da Parcela"
+        );
+        return $prazo;
+    }
+
+    /**
+     * Informações bancárias.
+     *
+     */
+    private function infBanc(stdClass $std)
+    {
+        $possible = [
+            'codBanco',
+            'codAgencia',
+            'CNPJIPEF'
+        ];
+        $stdBanco = $this->equilizeParameters($std, $possible);
+        $banco = $this->dom->createElement("infBanc");
+        $identificador = '[4] <infBanc> - ';
+        if (!empty($stdBanco->codBanco)) {
+            $this->dom->addChild(
+                $banco,
+                "codBanco",
+                $stdBanco->codBanco,
+                true,
+                $identificador . "Número do banco"
+            );
+            $this->dom->addChild(
+                $banco,
+                "codAgencia",
+                $stdBanco->codAgencia,
+                true,
+                $identificador . "Número da Agência"
+            );
+        } else {
+            $this->dom->addChild(
+                $banco,
+                "CNPJIPEF",
+                $stdBanco->CNPJIPEF,
+                true,
+                $identificador . "Número do CNPJ da Instituição de pagamento Eletrônico do Frete"
+            );
+        }
+        return $banco;
+    }
+
     /**
      * Add QRCode Tag to signed XML from a MDFe
      * @param DOMDocument $dom
