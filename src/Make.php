@@ -19,7 +19,6 @@ namespace NFePHP\MDFe;
  */
 
 use NFePHP\Common\Keys;
-use NFePHP\Common\Strings;
 use NFePHP\Common\DOMImproved as Dom;
 use DOMElement;
 use stdClass;
@@ -2430,27 +2429,26 @@ class Make
             'vComp',
             'xComp'
         ];
-        $stdComp = $this->equilizeParameters($std, $possible);
         $comp = $this->dom->createElement("Comp");
         $identificador = '[4] <Comp> - ';
         $this->dom->addChild(
             $comp,
             "tpComp",
-            $stdComp->tpComp,
+            $std->tpComp,
             true,
             $identificador . "Tipo do Componente"
         );
         $this->dom->addChild(
             $comp,
             "vComp",
-            $stdComp->vComp,
+            $std->vComp,
             true,
             $identificador . "Valor do Componente"
         );
         $this->dom->addChild(
             $comp,
             "xComp",
-            $stdComp->xComp,
+            $std->xComp,
             false,
             $identificador . "Descrição do componente do tipo Outros"
         );
@@ -2506,21 +2504,20 @@ class Make
             'codAgencia',
             'CNPJIPEF'
         ];
-        $stdBanco = $this->equilizeParameters($std, $possible);
         $banco = $this->dom->createElement("infBanc");
         $identificador = '[4] <infBanc> - ';
-        if (!empty($stdBanco->codBanco)) {
+        if (!empty($std->codBanco)) {
             $this->dom->addChild(
                 $banco,
                 "codBanco",
-                $stdBanco->codBanco,
+                $std->codBanco,
                 true,
                 $identificador . "Número do banco"
             );
             $this->dom->addChild(
                 $banco,
                 "codAgencia",
-                $stdBanco->codAgencia,
+                $std->codAgencia,
                 true,
                 $identificador . "Número da Agência"
             );
@@ -2528,7 +2525,7 @@ class Make
             $this->dom->addChild(
                 $banco,
                 "CNPJIPEF",
-                $stdBanco->CNPJIPEF,
+                $std->CNPJIPEF,
                 true,
                 $identificador . "Número do CNPJ da Instituição de pagamento Eletrônico do Frete"
             );
@@ -2818,16 +2815,4 @@ class Make
         }
     }
 
-    /**
-     * Includes missing or unsupported properties in stdClass
-     * Replace all unsuported chars
-     *
-     * @param  stdClass $std
-     * @param  array $possible
-     * @return stdClass
-     */
-    private function equilizeParameters(stdClass $std, $possible)
-    {
-        return Strings::equilizeParameters($std, $possible, $this->replaceAccentedChars);
-    }
 }
