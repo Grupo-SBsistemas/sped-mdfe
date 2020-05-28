@@ -19,6 +19,7 @@ namespace NFePHP\MDFe;
  */
 
 use NFePHP\Common\Keys;
+use NFePHP\Common\Strings;
 use NFePHP\Common\DOMImproved as Dom;
 use DOMElement;
 use stdClass;
@@ -2815,5 +2816,18 @@ class Make
 
             $this->dom->appChild($this->infDoc, $infMunDescarga, "infDoc");
         }
+    }
+
+    /**
+     * Includes missing or unsupported properties in stdClass
+     * Replace all unsuported chars
+     *
+     * @param  stdClass $std
+     * @param  array $possible
+     * @return stdClass
+     */
+    private function equilizeParameters(stdClass $std, $possible)
+    {
+        return Strings::equilizeParameters($std, $possible, $this->replaceAccentedChars);
     }
 }
