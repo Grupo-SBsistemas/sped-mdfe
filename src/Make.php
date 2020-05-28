@@ -2355,7 +2355,6 @@ class Make
             'infPrazo',
             'infBanc'
         ];
-        $std = $this->equilizeParameters($std, $possible);
         $infPag = $this->dom->createElement("infPag");
         $identificador = '[4] <infPag> - ';
         $this->dom->addChild(
@@ -2466,27 +2465,26 @@ class Make
             'dVenc',
             'vParcela'
         ];
-        $stdPraz = $this->equilizeParameters($std, $possible);
         $prazo = $this->dom->createElement("infPrazo");
         $identificador = '[4] <infPrazo> - ';
         $this->dom->addChild(
             $prazo,
             "nParcela",
-            $stdPraz->nParcela,
+            $std->nParcela,
             false,
             $identificador . "Número da parcela"
         );
         $this->dom->addChild(
             $prazo,
             "dVenc",
-            $stdPraz->dVenc,
+            $std->dVenc,
             false,
             $identificador . "Data de vencimento da Parcela (AAAA-MMDD)"
         );
         $this->dom->addChild(
             $prazo,
             "vParcela",
-            $stdPraz->vParcela,
+            $std->vParcela,
             true,
             $identificador . "Valor da Parcela"
         );
