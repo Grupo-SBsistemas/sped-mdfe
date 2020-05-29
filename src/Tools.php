@@ -437,6 +437,91 @@ class Tools extends CommonTools
         );
     }
 
+        /**
+     * sefazIncluiPagamentoTransporte
+     *
+     * @param  string $chave
+     * @param  object $std
+     * @param  string $nSeqEvento
+     * @return string
+     * @throws Exception\InvalidArgumentException
+     */
+    public function sefazIncluiPagamentoTransporte(
+        $chave = '',
+        $std,
+        $nSeqEvento = '1',
+        $retornarXML = false
+    ) {
+        $siglaUF = $this->validKeyByUF($chave);
+        //estabelece o codigo do tipo de evento Inclusão de DFe
+        $tpEvento = '110116';
+        //monta mensagem
+        $tagAdic = "<evPagtoOperMDFe><descEvento>Pagamento Operação MDF-e</descEvento>"
+            . "<nProt>$std->nProt</nProt><infViagens><infViagens>{$std->infViagens->infViagens}</infViagens><qtdViagens>{$std->infViagens->qtdViagens}</qtdViagens></infViagens>";
+
+        foreach($std->infPags as $infPag) {
+            $tagAdic .= "<infPag><xNome>{$infPag->xNome}</xNome>";
+            if (isset($std->CPF)) {
+                $tagAdic .= "<infPag><CPF>{$infPag->CPF}</CPF>";
+            } else if (isset($std->CNPJ)) {
+                $tagAdic .= "<infPag><CNPJ>{$infPag->CNPJ}</CNPJ>";
+            } else if (isset($std->idEstrangeiro)){
+                $tagAdic .= "<infPag><idEstrangeiro>{$infPag->idEstrangeiro}</idEstrangeiro>";
+            }
+
+            foreach($infPag->Comps as $Comp) {
+                $tagAdic .= "<Comp><tpComp>{$Comp->tpComp}</tpComp>"
+                         . "<vComp>{$Comp->vComp}</vComp>";
+
+                if (isset($Comp->xComp)) {
+                    $tagAdic .= "<xComp>{$Comp->xComp}</xComp>";
+                }
+                $tagAdic .="</Comp>";
+            }
+
+            $tagAdic .= "<vContrato>{$infPag->vContrato}</vContrato>";
+            if (isset($infPag->indPag)) {
+                $tagAdic .= "<indPag>{$infPag->indPag}</indPag>";
+            }
+
+            if (isset($infPag->infPrazos) && count($infPag->infPrazos) > 0) {
+                foreach($infPag->infPrazos as $infPrazo){
+                    $tagAdic .= "<infPrazo>";
+                    if (isset($infPrazo->nParcela)) {
+                        $tagAdic .= "<nParcela>{$infPrazo->nParcela}</nParcela>";
+                    }
+                    if (isset($infPrazo->dVenc)) {
+                        $tagAdic .= "<dVenc>{$infPrazo->dVenc}</dVenc>";
+                    }
+                    $tagAdic .= "<vParcela>{$infPrazo->vParcela}</vParcela>";
+                    $tagAdic .="</infPrazo>";
+                }
+            }
+
+            $tagAdic .= "<infBanc>";
+            if (isset($infPag->infBanc->codBanco)) {
+                $tagAdic .= "<codBanco>{$infPag->infBanc->codBanco}</codBanco>";
+                $tagAdic .= "<codAgencia>{$infPag->infBanc->codAgencia}</codAgencia>";
+            } else if (isset($infPag->infBanc->CNPJIPEF)){
+                $tagAdic .= "<CNPJIPEF>{$infPag->infBanc->CNPJIPEF}</CNPJIPEF>";
+            }
+            $tagAdic .= "</infBanc>";
+
+            $tagAdic .="</infPag>";
+        }
+
+        $tagAdic .= "</evPagtoOperMDFe>";
+
+        return $this->sefazEvento(
+            $siglaUF,
+            $chave,
+            $tpEvento,
+            $nSeqEvento,
+            $tagAdic,
+            $retornarXML
+        );
+    }
+
     /**
      * sefazConsultaNaoEncerrados
      *
@@ -574,6 +659,11 @@ class Tools extends CommonTools
                 //inclusao de DF-e
                 $std->alias = 'evIncDFeMDFe';
                 $std->desc = 'Inclusao DF-e';
+                break;
+            case '110116':
+                //Pagamento Operação MDF-e
+                $std->alias = 'evPagtoOperMDFe';
+                $std->desc = 'Pagamento Operação MDF-e';
                 break;
             default:
                 $msg = "O código do tipo de evento informado não corresponde a "
