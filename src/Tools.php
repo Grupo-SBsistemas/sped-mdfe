@@ -457,7 +457,7 @@ class Tools extends CommonTools
         $tpEvento = '110116';
         //monta mensagem
         $tagAdic = "<evPagtoOperMDFe><descEvento>Pagamento Operação MDF-e</descEvento>"
-            . "<nProt>$std->nProt</nProt><infViagens><infViagens>{$std->infViagens->infViagens}</infViagens><qtdViagens>{$std->infViagens->qtdViagens}</qtdViagens></infViagens>";
+            . "<nProt>$std->nProt</nProt><infViagens><qtdViagens>{$std->infViagens->qtdViagens}</qtdViagens><nroViagem>{$std->infViagens->nroViagem}</nroViagem></infViagens>";
 
         foreach($std->infPags as $infPag) {
             $tagAdic .= "<infPag><xNome>{$infPag->xNome}</xNome>";
