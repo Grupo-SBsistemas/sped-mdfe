@@ -801,7 +801,7 @@ class Make
             "CNPJ da empresa fornecedora do Vale-Pedágio"
         );
 
-        if (isset($std->CNPJPg)){
+        if (isset($std->CNPJPg)) {
             $this->dom->addChild(
                 $disp,
                 "CNPJPg",
@@ -811,13 +811,33 @@ class Make
             );
         }
         else
-        if (isset($std->CPFPg)){
+        if (isset($std->CPFPg)) {
             $this->dom->addChild(
                 $disp,
                 "CPFPg",
                 $std->CPFPg,
                 false,
                 "CNPJ do responsável pelo pagamento do Vale-Pedágio"
+            );
+        }
+
+        if (isset($std->categCombVeic)) {
+            $this->dom->addChild(
+                $disp,
+                "categCombVeic",
+                $std->categCombVeic,
+                false,
+                "Categoria de Combinação Veicula"
+            );
+        }
+
+        if (isset($std->tpValePed)) {
+            $this->dom->addChild(
+                $disp,
+                "tpValePed",
+                $std->tpValePed,
+                false,
+                "Categoria de Combinação Veicula"
             );
         }
 
