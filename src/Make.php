@@ -163,6 +163,7 @@ class Make
     private $aInfCTe = [];
     private $aInfNFe = [];
     private $aInfMDFe = [];
+    private $categCombVeic = "";
 
     /**
      * @type string|\DOMNode
@@ -725,8 +726,15 @@ class Make
 
         $this->dom->addArrayChild($this->infANTT, $this->aInfCIOT);
 
-         if (!empty($this->aDisp)){
+        if (!empty($this->aDisp)) {
             $valePed = $this->dom->createElement("valePed");
+            $this->dom->addChild(
+                $valePed,
+                "categCombVeic",
+                $this->categCombVeic,
+                false,
+                "Categoria de Combinação Veicular",
+            );
 
             foreach ($this->aDisp as $node) {
                 $this->dom->appChild($valePed, $node, '');
@@ -740,6 +748,24 @@ class Make
         $this->rodo->insertBefore($this->infANTT);
         return $this->infANTT;
     }
+
+
+    /**
+     * tagcategCombVeic
+     * tag MDFe/infMDFe/infModal/rodo/infANTT/valePed/categCombVeic
+     * Foi feito isso aqui, mas o certo era fazer o tagvalePed, foi feito assim para não ter que alterar tanto a
+     * estrutura do framework. OBS: Essa função não cria a tag, mas seta uma váriavel para a criação quando existir
+     * tagdisp.
+     *
+     * @param  stdClass $std
+     * @return DOMElement
+     */
+    public function tagcategCombVeic(string $str)
+    {
+
+        $this->categCombVeic = str_pad($str, 2, "0", STR_PAD_LEFT);
+    }
+
 
     /**
      * tagInfCIOT
