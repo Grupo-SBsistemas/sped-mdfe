@@ -728,6 +728,11 @@ class Make
 
         if (!empty($this->aDisp)) {
             $valePed = $this->dom->createElement("valePed");
+
+            foreach ($this->aDisp as $node) {
+                $this->dom->appChild($valePed, $node, '');
+            }
+
             $this->dom->addChild(
                 $valePed,
                 "categCombVeic",
@@ -735,11 +740,6 @@ class Make
                 false,
                 "Categoria de Combinação Veicular",
             );
-
-            foreach ($this->aDisp as $node) {
-                $this->dom->appChild($valePed, $node, '');
-            }
-
             $this->dom->appChild($this->infANTT, $valePed, '');
         }
 
@@ -847,25 +847,6 @@ class Make
             );
         }
 
-        if (isset($std->categCombVeic)) {
-            $this->dom->addChild(
-                $disp,
-                "categCombVeic",
-                $std->categCombVeic,
-                false,
-                "Categoria de Combinação Veicula"
-            );
-        }
-
-        if (isset($std->tpValePed)) {
-            $this->dom->addChild(
-                $disp,
-                "tpValePed",
-                $std->tpValePed,
-                false,
-                "Categoria de Combinação Veicula"
-            );
-        }
 
         $this->dom->addChild(
             $disp,
@@ -881,6 +862,16 @@ class Make
             false,
             "Valor do Vale-Pedagio"
         );
+
+        if (isset($std->tpValePed)) {
+            $this->dom->addChild(
+                $disp,
+                "tpValePed",
+                $std->tpValePed,
+                false,
+                "Categoria de Combinação Veicula"
+            );
+        }
 
         $this->aDisp[] = $disp;
         return $disp;
