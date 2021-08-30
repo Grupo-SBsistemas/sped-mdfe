@@ -1,5 +1,5 @@
 {
-    "name": "fonini/sped-mdfe",
+    "name": "grupo-sbsistemas/sped-mdfe",
     "type": "library",
     "description": "API para geração e comunicação da MDFe com as SEFAZ autorizadoras.",
     "keywords": ["mdfe", "sped", "nfephp"],
@@ -20,12 +20,12 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/fonini/sped-common.git"
+            "url": "https://github.com/grupo-sbsistemas/sped-common.git"
         }
     ],
     "require": {
         "php" : ">=5.6",
-        "fonini/sped-common" : "dev-master",
+        "grupo-sbsistemas/sped-common" : "dev-master",
         "justinrainbow/json-schema": "^5.2"
     },
     "require-dev": {
