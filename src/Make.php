@@ -539,13 +539,23 @@ class Make
     {
         $identificador = '[25] <emit> - ';
         $emit = $this->dom->createElement("emit");
-        $this->dom->addChild(
-            $emit,
-            "CNPJ",
-            $std->CNPJ,
-            true,
-            $identificador . "CNPJ do emitente"
-        );
+        if ($std->CPF) {
+            $this->dom->addChild(
+                $emit,
+                "CPF",
+                $std->CPF,
+                true,
+                $identificador . "CPF do emitente"
+            );
+        } else {
+            $this->dom->addChild(
+                $emit,
+                "CNPJ",
+                $std->CNPJ,
+                true,
+                $identificador . "CNPJ do emitente"
+            );
+        }
         $this->dom->addChild(
             $emit,
             "IE",
@@ -2618,8 +2628,11 @@ class Make
         $emit = $dom->getElementsByTagName("emit")->item(0);
         $cUF = $ide->getElementsByTagName('cUF')->item(0)->nodeValue;
         $dhEmi = $ide->getElementsByTagName('dhEmi')->item(0)->nodeValue;
-        $cnpj = $emit->getElementsByTagName('CNPJ')->item(0)->nodeValue;
-        $mod = $ide->getElementsByTagName('mod')->item(0)->nodeValue;
+        if (!empty($emit->getElementsByTagName('CNPJ')->item(0)->nodeValue)) {
+            $doc = $emit->getElementsByTagName('CNPJ')->item(0)->nodeValue;
+        } else {
+            $doc = $emit->getElementsByTagName('CPF')->item(0)->nodeValue;
+        }        $mod = $ide->getElementsByTagName('mod')->item(0)->nodeValue;
         $serie = $ide->getElementsByTagName('serie')->item(0)->nodeValue;
         $nMDF = $ide->getElementsByTagName('nMDF')->item(0)->nodeValue;
         $tpEmis = $ide->getElementsByTagName('tpEmis')->item(0)->nodeValue;
@@ -2631,7 +2644,7 @@ class Make
             $cUF,
             $dt->format('y'),
             $dt->format('m'),
-            $cnpj,
+            $doc,
             $mod,
             $serie,
             $nMDF,
