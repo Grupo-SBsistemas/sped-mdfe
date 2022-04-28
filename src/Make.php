@@ -539,7 +539,7 @@ class Make
     {
         $identificador = '[25] <emit> - ';
         $emit = $this->dom->createElement("emit");
-        if ($std->CPF) {
+        if (isset($std->CPF) && $std->CPF {
             $this->dom->addChild(
                 $emit,
                 "CPF",
@@ -2632,7 +2632,8 @@ class Make
             $doc = $emit->getElementsByTagName('CNPJ')->item(0)->nodeValue;
         } else {
             $doc = $emit->getElementsByTagName('CPF')->item(0)->nodeValue;
-        }        $mod = $ide->getElementsByTagName('mod')->item(0)->nodeValue;
+        }
+        $mod = $ide->getElementsByTagName('mod')->item(0)->nodeValue;
         $serie = $ide->getElementsByTagName('serie')->item(0)->nodeValue;
         $nMDF = $ide->getElementsByTagName('nMDF')->item(0)->nodeValue;
         $tpEmis = $ide->getElementsByTagName('tpEmis')->item(0)->nodeValue;
