@@ -539,7 +539,7 @@ class Make
     {
         $identificador = '[25] <emit> - ';
         $emit = $this->dom->createElement("emit");
-        if (isset($std->CPF) && $std->CPF {
+        if (isset($std->CPF) && $std->CPF) {
             $this->dom->addChild(
                 $emit,
                 "CPF",
